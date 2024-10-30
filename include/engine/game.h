@@ -1,9 +1,9 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <ui.h>
-#include <geometry.h>
-#include <terminal.h>
+#include <engine/ui.h>
+#include <engine/geometry.h>
+#include <engine/terminal.h>
 #include <stdarg.h>
 #include <stdbool.h>
 

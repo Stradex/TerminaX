@@ -1,4 +1,4 @@
-#include <terminal.h>
+#include <engine/terminal.h>
 #include <sys/ioctl.h>
 #include <stdio.h>
 #include <unistd.h>

@@ -2,7 +2,7 @@
 #include <ncurses.h>
 #include <string.h>
 #include <stdlib.h>
-#include <game.h>
+#include <engine/game.h>
 
 Game* current_game;
 

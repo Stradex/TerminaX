@@ -1,6 +1,6 @@
-#include <game.h>
-#include <draw.h>
-#include <ui.h>
+#include <engine/game.h>
+#include <engine/draw.h>
+#include <engine/ui.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>

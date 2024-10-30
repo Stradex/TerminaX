@@ -1,14 +1,34 @@
+# Compiler
 CC = gcc
-CFLAGS = -lncurses -I./include/ -w
-SOURCES = ./src/*.c
 
-all: compile run clean
+# Flags
+CFLAGS = -Iinclude -Wall
+LDFLAGS = -lncurses  # Link ncurses
 
-compile: 
-	$(CC) $(SOURCES) $(CFLAGS) -o rpg
+# Directories
+SRCDIR = src
+ENGINE_SRC = $(SRCDIR)/engine
+OBJDIR = obj
+BINDIR = bin
 
-run:
-	./rpg
+# Target
+TARGET = $(BINDIR)/game
 
+# Source and Object Files
+SRC = $(SRCDIR)/main.c $(wildcard $(ENGINE_SRC)/*.c)
+OBJS = $(SRC:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+
+# Create directories
+$(shell mkdir -p $(BINDIR) $(OBJDIR)/engine)
+
+# Compile target
+$(TARGET): $(OBJS)
+	$(CC) $(OBJS) -o $@ $(LDFLAGS)
+
+# Compile source files
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Clean
 clean:
-	rm rpg
+	rm -rf $(OBJDIR) $(BINDIR)

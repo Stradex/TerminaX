@@ -1,5 +1,5 @@
-#include <draw.h>
-#include <geometry.h>
+#include <engine/draw.h>
+#include <engine/geometry.h>
 #include <ncurses.h>
 
 Position get_draw_position(Position pos, Game* game) {
