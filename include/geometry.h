@@ -4,7 +4,7 @@
 typedef struct {
 	int x;
 	int y;
-} Point;
+} Position;
 
 typedef struct {
 	int width;
@@ -13,7 +13,10 @@ typedef struct {
 
 typedef struct {
 	Size size;
-	Point pos;
+	Position pos;
 } Rect;
+
+Rect create_rect(int x, int y, int width, int height);
+Position create_pos(int x, int y);
 
 #endif
