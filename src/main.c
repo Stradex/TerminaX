@@ -2,13 +2,13 @@
 #include <ncurses.h>
 #include <string.h>
 #include <stdlib.h>
-#include <engine/game.h>
+#include <engine/renderer.h>
 
-Game* current_game;
+Renderer* current_renderer;
 
 int main (void) {
-	current_game = init_game(60, 15); //fixed size: 15 cols - 30 rows
-	game_loop(current_game);
-	game_end(current_game);
+	current_renderer = init_renderer(60, 15); //fixed size: 15 cols - 30 rows
+	renderer_loop(current_renderer);
+	renderer_end(current_renderer);
 	return 0;
 }

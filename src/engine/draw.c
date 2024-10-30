@@ -2,20 +2,20 @@
 #include <engine/geometry.h>
 #include <ncurses.h>
 
-Position get_draw_position(Position pos, Game* game) {
+Position get_draw_position(Position pos, Renderer* renderer) {
 	Position new_pos;
-	int pos_mult = game->screen.size.width / game->size.width;
-	new_pos.x = game->screen.pos.x + pos.x*pos_mult;
-	new_pos.y = game->screen.pos.y + pos.y*pos_mult;
+	int pos_mult = renderer->screen.size.width / renderer->size.width;
+	new_pos.x = renderer->screen.pos.x + pos.x*pos_mult;
+	new_pos.y = renderer->screen.pos.y + pos.y*pos_mult;
 
 	return new_pos;
 }
 
-Rect get_draw_rect(Rect rect, Game* game) {
+Rect get_draw_rect(Rect rect, Renderer* renderer) {
 	Rect new_rect;
-	new_rect.pos = get_draw_position(rect.pos, game);
+	new_rect.pos = get_draw_position(rect.pos, renderer);
 
-	int pos_mult = game->screen.size.width / game->size.width;
+	int pos_mult = renderer->screen.size.width / renderer->size.width;
 	
 	new_rect.size.width = rect.size.width*pos_mult;
 	new_rect.size.height = rect.size.height*pos_mult;
@@ -24,7 +24,7 @@ Rect get_draw_rect(Rect rect, Game* game) {
 }
 
 
-void draw_element(void* e, Game* game) {
+void draw_element(void* e, Renderer* renderer) {
 	UIFigure *figure = (UIFigure *)e;
 
 	if (figure->visible == 0) {
@@ -33,30 +33,30 @@ void draw_element(void* e, Game* game) {
 
 	switch (figure->type) {
 		case FIGURE_POINT:
-			draw_point((UIPoint*)e, game);
+			draw_point((UIPoint*)e, renderer);
 		break;
 		case FIGURE_RECTANGLE:
-			draw_rect((UIRect*)e, game);
+			draw_rect((UIRect*)e, renderer);
 		break;
 		case FIGURE_BORDER:
-			draw_border((UIBorder*)e, game);
+			draw_border((UIBorder*)e, renderer);
 		break;
 		case FIGURE_TEXT:
-			draw_text((UIText*)e, game);
+			draw_text((UIText*)e, renderer);
 		break;
 	}
 }
 
-void draw_char(Position pos, int ch, int color, Game* game) {
-	Position draw_pos = get_draw_position(pos, game);
-	int size_mult = game->screen.size.width / game->size.width;
+void draw_char(Position pos, int ch, int color, Renderer* renderer) {
+	Position draw_pos = get_draw_position(pos, renderer);
+	int size_mult = renderer->screen.size.width / renderer->size.width;
 	mvaddch(draw_pos.y, draw_pos.x, ch | COLOR_PAIR(color));
 }
 
 
-void draw_point(UIPoint* p, Game* game) {
-	Position draw_pos = get_draw_position(p->pos, game);
-	int size_mult = game->screen.size.width / game->size.width;
+void draw_point(UIPoint* p, Renderer* renderer) {
+	Position draw_pos = get_draw_position(p->pos, renderer);
+	int size_mult = renderer->screen.size.width / renderer->size.width;
 
 	for (int i=0; i < size_mult; i++) {
 		for (int j=0; j < size_mult; j++) {
@@ -65,7 +65,7 @@ void draw_point(UIPoint* p, Game* game) {
 	}
 }
 
-void draw_border(UIBorder* r, Game* game) {
+void draw_border(UIBorder* r, Renderer* renderer) {
 
 	for(int i=0; i <= r->rect.size.width; i++) {
 		for(int j=0; j <= r->rect.size.height; j++) {
@@ -75,26 +75,26 @@ void draw_border(UIBorder* r, Game* game) {
 			UIPoint p = create_uipoint(i+r->rect.pos.x, j+r->rect.pos.y);
 			p.color = r->color;
 			p.ch = r->ch;
-			draw_point(&p, game);
+			draw_point(&p, renderer);
 		}
 	}
 }
 
 
-void draw_rect(UIRect* r, Game* game) {
+void draw_rect(UIRect* r, Renderer* renderer) {
 
 	for(int i=0; i <= r->rect.size.width; i++) {
 		for(int j=0; j <= r->rect.size.height; j++) {
 			UIPoint p = create_uipoint(i+r->rect.pos.x, j+r->rect.pos.y);
 			p.color = r->color;
 			p.ch = r->ch;
-			draw_point(&p, game);
+			draw_point(&p, renderer);
 		}
 	}
 }
 
 
-void draw_text(UIText* e, Game* game) {
+void draw_text(UIText* e, Renderer* renderer) {
 	int text_len = strlen(e->text);
 	for (int i=0; i < text_len; i++) {
 		int x	= i;
@@ -116,6 +116,6 @@ void draw_text(UIText* e, Game* game) {
 			x += e->box.pos.x;
 		}
 
-		draw_char(create_pos(x, y), e->text[i], e->color, game);
+		draw_char(create_pos(x, y), e->text[i], e->color, renderer);
 	}
 }
