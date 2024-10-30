@@ -12,9 +12,9 @@ void init_colors(void) {
 	if (has_colors())
 	{
 		start_color();
-		init_pair(UI_COLOR_WHITE, COLOR_WHITE, COLOR_BLACK);
-		init_pair(UI_COLOR_RED, COLOR_RED, COLOR_BLACK);
-		init_pair(UI_COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);
+		init_pair(UI_COLOR_WHITE, COLOR_WHITE, -1);
+		init_pair(UI_COLOR_RED, COLOR_RED, -1);
+		init_pair(UI_COLOR_BLUE, COLOR_BLUE, -1);
 	}
 }
 
@@ -23,6 +23,7 @@ void init_ncurses(void) {
 	noecho();
 	curs_set(0);
 	halfdelay(4);
+	use_default_colors();
 	init_colors();
 }
 
@@ -46,7 +47,6 @@ void refresh_game_size(Game* game) {
 	screen.pos.x = (game->t.cols - screen.size.width)/2;
 	screen.pos.y = (game->t.rows - screen.size.height)/2-1;
 	game->screen = screen;
-	//printf("game width: %d\n", scale);
 }
 
 Game* init_game(int width, int height) {
@@ -58,6 +58,12 @@ Game* init_game(int width, int height) {
 	refresh_game_size(game);
 	return game;
 }	
+
+void draw_game_border(Game* game) {
+	UIBorder r = create_uiborder(-1, -1, game->size.width+2, game->size.height+2);
+	r.color = UI_COLOR_RED;
+	draw_element(&r, game);
+}
 
 void game_render(Game* game, int ch) {
 	if (!can_game_render(game)) {
@@ -71,22 +77,6 @@ void game_render(Game* game, int ch) {
 	}
 	//test draw point
 	game_print("frame: %d", game, frame_number);
-	UIText t = create_uitext(create_rect(0, 0, game->size.width, game->size.height), "Pizza");
-	t.align = ALIGN_CENTER | ALIGN_BOTTOM;
-	draw_element(&t, game);
-	UIBorder r = create_uiborder(-1, -1, game->size.width+2, game->size.height+2);
-	r.color = UI_COLOR_RED;
-	UIPoint p1 = create_uipoint(game->size.width, game->size.height);
-	UIPoint p2 = create_uipoint(0, 0);
-	UIPoint p3 = create_uipoint(22, 9);
-	UIPoint p4 = create_uipoint(23, 9);
-	UIPoint p5 = create_uipoint(23, 10);
-	draw_element(&p1, game);
-	draw_element(&p2, game);
-	draw_element(&p3, game);
-	draw_element(&p4, game);
-	draw_element(&p5, game);
-	draw_element(&r, game);
 
 	frame_number++;
 }
@@ -100,6 +90,7 @@ void game_loop(Game* game) {
 		clear();
 		refresh_game_size(game);
 		game_render(game, ch);
+		draw_game_border(game);
 		refresh();
 	} while(ch != 'q');
 }
