@@ -15,7 +15,8 @@ typedef enum {
     FIGURE_POINT,
     FIGURE_RECTANGLE,
     FIGURE_BORDER,
-		FIGURE_TEXT
+		FIGURE_TEXT,
+		FIGURE_SPRITE
 } FigureType;
 
 //bitflags
@@ -28,6 +29,7 @@ typedef enum {
     ALIGN_BOTTOM=32,
 } TextAlignType;
 
+//Generic UI element struct so we can use functions for all UI elements.
 typedef struct {
     FigureType type;
 		UIColor color;
@@ -51,6 +53,7 @@ typedef struct {
 		UIColor color;
 		bool visible;
 	//END
+
 		Rect rect;
 		int ch;
 } UIRect;
@@ -61,6 +64,7 @@ typedef struct {
 		UIColor color;
 		bool visible;
 	//END
+
 		Rect box;
 		TextAlignType align;
 		char* text;
@@ -72,9 +76,22 @@ typedef struct {
 		UIColor color;
 		bool visible;
 	//RECT
+
 		Rect rect;
 		int ch;
 } UIBorder;
+
+typedef struct {
+	//START: UIFigure elements: order DOES matter
+    FigureType type;
+		UIColor color;
+		bool visible;
+	//RECT
+
+    char* sprite;
+    char* brightmap;
+		Position pos;
+} UISprite;
 
 
 //Shorthand functions
@@ -82,5 +99,6 @@ UIPoint create_uipoint(int x, int y);
 UIRect create_uirect(int x, int y, int width, int height);
 UIBorder create_uiborder(int x, int y, int width, int height);
 UIText create_uitext(Rect box, const char* text);
+UISprite create_uisprite(int x, int y, const char* sprite);
 
 #endif

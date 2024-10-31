@@ -53,3 +53,16 @@ UIText create_uitext(Rect box, const char* text) {
 
 	return ui_text;
 }
+
+UISprite create_uisprite(int x, int y, const char* sprite) {
+  UISprite ui_sprite;
+  ui_sprite.type = FIGURE_SPRITE;
+  ui_sprite.pos.x = x;
+  ui_sprite.pos.y = y;
+  ui_sprite.color = UI_COLOR_WHITE;
+  ui_sprite.sprite = calloc(strlen(sprite)+1, sizeof(char));
+  strcpy(ui_sprite.sprite, sprite);
+  ui_sprite.brightmap = NULL;
+  ui_sprite.visible = true;
+  return ui_sprite;
+}

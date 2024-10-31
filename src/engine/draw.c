@@ -1,6 +1,7 @@
 #include <engine/draw.h>
 #include <engine/geometry.h>
 #include <ncurses.h>
+#include <string.h>
 
 Position get_draw_position(Position pos, Renderer* renderer) {
 	Position new_pos;
@@ -44,12 +45,15 @@ void draw_element(void* e, Renderer* renderer) {
 		case FIGURE_TEXT:
 			draw_text((UIText*)e, renderer);
 		break;
+		case FIGURE_SPRITE:
+			draw_sprite((UISprite*)e, renderer);
+		break;
+
 	}
 }
 
 void draw_char(Position pos, int ch, int color, Renderer* renderer) {
 	Position draw_pos = get_draw_position(pos, renderer);
-	int size_mult = renderer->screen.size.width / renderer->size.width;
 	mvaddch(draw_pos.y, draw_pos.x, ch | COLOR_PAIR(color));
 }
 
@@ -118,4 +122,26 @@ void draw_text(UIText* e, Renderer* renderer) {
 
 		draw_char(create_pos(x, y), e->text[i], e->color, renderer);
 	}
+}
+
+
+void draw_sprite(UISprite* s, Renderer* renderer) {
+
+  int len = strlen(s->sprite);
+  for (int i=0, col=0, row=0; i < len; i++, col++) {
+    if (s->sprite[i] == ' ' || s->sprite[i] == '\t' || s->sprite[i] == '\r' ) {
+     continue; 
+    }
+    if (s->sprite[i] == '\n') {
+      row++;
+      col=-1;
+      continue;
+    }
+    int x=col + s->pos.x;
+    int y=row + s->pos.y;
+    UIPoint p = create_uipoint(x, y);
+    p.color = s->brightmap ? (UIColor)(s->brightmap[i] - '0') : s->color;
+    p.ch = s->sprite[i];
+    draw_point(&p, renderer);
+  }
 }

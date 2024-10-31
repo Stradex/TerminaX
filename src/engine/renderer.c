@@ -77,8 +77,6 @@ void engine_render(Renderer* renderer, void (*game_logic)()) {
 			return;
 	}
 	game_logic();
-	//test draw point
-	engine_print("frame: %d", renderer, frame_number);
 
 	frame_number++;
 }
