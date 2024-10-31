@@ -1,12 +1,8 @@
 #pragma once
 
 #include <stddef.h>
+#include <stdbool.h>
 
-#ifndef __cplusplus
-typedef unsigned int bool;
-#define true (1)
-#define false (0)
-#endif
 
 #define typed(name) name##_t
 
