@@ -1,5 +1,6 @@
 #include <game/game.h>
 #include <engine/renderer.h>
+#include <engine/engine.h>
 
 Game* create_game(int width, int height, void (*game_logic)()) {
 	Game *g = calloc(1, sizeof(Game));
@@ -10,6 +11,7 @@ Game* create_game(int width, int height, void (*game_logic)()) {
 
 
 void game_start(Game* game) {
+  init_engine();
 	renderer_loop(game->renderer, game->game_logic);
 	renderer_end(game->renderer);
 }
