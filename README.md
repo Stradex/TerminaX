@@ -28,4 +28,4 @@ int main (void) {
 
 ## Credits
 
-* (C-Simple-JSON-Parser by stevemolloy)[https://github.com/forkachild/C-Simple-JSON-Parser]
+* [C-Simple-JSON-Parser by stevemolloy](https://github.com/forkachild/C-Simple-JSON-Parse)
