@@ -9,6 +9,7 @@ LDFLAGS = -lncurses  # Link ncurses
 SRCDIR = src
 ENGINE_SRC = $(SRCDIR)/engine
 GAME_SRC = $(SRCDIR)/game
+UTIL_SRC = $(SRCDIR)/util
 OBJDIR = obj
 BINDIR = bin
 
@@ -16,11 +17,11 @@ BINDIR = bin
 TARGET = $(BINDIR)/game
 
 # Source and Object Files
-SRC = $(SRCDIR)/main.c $(wildcard $(ENGINE_SRC)/*.c) $(wildcard $(GAME_SRC)/*.c) 
+SRC = $(SRCDIR)/main.c $(wildcard $(ENGINE_SRC)/*.c) $(wildcard $(GAME_SRC)/*.c) $(wildcard $(UTIL_SRC)/*.c) 
 OBJS = $(SRC:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 # Create directories
-$(shell mkdir -p $(BINDIR) $(OBJDIR)/engine $(OBJDIR)/game) 
+$(shell mkdir -p $(BINDIR) $(OBJDIR)/engine $(OBJDIR)/game $(OBJDIR)/util) 
 
 # Compile target
 $(TARGET): $(OBJS)

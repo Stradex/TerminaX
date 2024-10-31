@@ -25,3 +25,7 @@ int main (void) {
 	return 0;
 }
 ```
+
+## Credits
+
+* (C-Simple-JSON-Parser by stevemolloy)[https://github.com/forkachild/C-Simple-JSON-Parser]

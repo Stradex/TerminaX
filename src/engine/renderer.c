@@ -83,6 +83,8 @@ void engine_render(Renderer* renderer, void (*game_logic)()) {
 	}
 	game_logic();
 
+  engine_print("frame: %d", renderer, frame_number);
+
 	frame_number++;
 }
 
