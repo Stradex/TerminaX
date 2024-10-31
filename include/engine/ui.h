@@ -7,8 +7,13 @@
 
 typedef enum {
     UI_COLOR_WHITE=1,
-    UI_COLOR_RED,
-    UI_COLOR_BLUE
+    UI_COLOR_RED, //2
+    UI_COLOR_BLUE, //3
+    UI_COLOR_GREEN, //4
+    UI_COLOR_YELLOW, //5
+    UI_COLOR_MAGENTA, //6
+    UI_COLOR_CYAN, //7
+    UI_COLOR_BLACK //8
 } UIColor;
 
 typedef enum {

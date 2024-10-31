@@ -16,6 +16,11 @@ void init_colors(void) {
 		init_pair(UI_COLOR_WHITE, COLOR_WHITE, -1);
 		init_pair(UI_COLOR_RED, COLOR_RED, -1);
 		init_pair(UI_COLOR_BLUE, COLOR_BLUE, -1);
+		init_pair(UI_COLOR_GREEN, COLOR_GREEN, -1);
+		init_pair(UI_COLOR_YELLOW, COLOR_YELLOW, -1);
+		init_pair(UI_COLOR_MAGENTA, COLOR_MAGENTA, -1);
+		init_pair(UI_COLOR_CYAN, COLOR_CYAN, -1);
+		init_pair(UI_COLOR_BLACK, COLOR_BLACK, -1);
 	}
 }
 
