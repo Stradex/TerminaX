@@ -21,7 +21,8 @@ typedef enum {
     FIGURE_RECTANGLE,
     FIGURE_BORDER,
 		FIGURE_TEXT,
-		FIGURE_SPRITE
+		FIGURE_SPRITE,
+		FIGURE_SPRITE_ANIM
 } FigureType;
 
 //bitflags
@@ -98,6 +99,22 @@ typedef struct {
 		Position pos;
 } UISprite;
 
+typedef struct {
+	//START: UIFigure elements: order DOES matter
+    FigureType type;
+		UIColor color;
+		bool visible;
+	//RECT
+  
+    UISprite* sprites;
+    int* delay; //delay of each sprite frame
+    int num_sprites;
+    int current_sprite;
+    int wait;
+    bool loop;
+    Position pos;
+} UISpriteAnim;
+
 
 //Shorthand functions
 UIPoint create_uipoint(int x, int y);
@@ -105,5 +122,7 @@ UIRect create_uirect(int x, int y, int width, int height);
 UIBorder create_uiborder(int x, int y, int width, int height);
 UIText create_uitext(Rect box, const char* text);
 UISprite create_uisprite(int x, int y, const char* sprite);
+UISpriteAnim create_uisprite_anim(int x, int y);
+void add_sprite_to_anim(UISpriteAnim* anim, UISprite* sprite, int delay);
 
 #endif

@@ -48,6 +48,10 @@ void draw_element(void* e, Renderer* renderer) {
 		case FIGURE_SPRITE:
 			draw_sprite((UISprite*)e, renderer);
 		break;
+		case FIGURE_SPRITE_ANIM:
+			draw_sprite_anim((UISpriteAnim*)e, renderer);
+		break;
+
 
 	}
 }
@@ -124,9 +128,7 @@ void draw_text(UIText* e, Renderer* renderer) {
 	}
 }
 
-
-void draw_sprite(UISprite* s, Renderer* renderer) {
-
+void local_draw_sprite(UISprite* s, Renderer* renderer, Position offset) {
   int len = strlen(s->sprite);
   for (int i=0, col=0, row=0; i < len; i++, col++) {
     if (s->sprite[i] == ' ' || s->sprite[i] == '\t' || s->sprite[i] == '\r' ) {
@@ -137,11 +139,36 @@ void draw_sprite(UISprite* s, Renderer* renderer) {
       col=-1;
       continue;
     }
-    int x=col + s->pos.x;
-    int y=row + s->pos.y;
+    int x=col + s->pos.x + offset.x;
+    int y=row + s->pos.y + offset.y;
     UIPoint p = create_uipoint(x, y);
     p.color = s->brightmap ? (UIColor)(s->brightmap[i] - '0') : s->color;
     p.ch = s->sprite[i];
     draw_point(&p, renderer);
   }
+
+}
+void draw_sprite(UISprite* s, Renderer* renderer) {
+  local_draw_sprite(s, renderer, create_pos(0, 0)); 
+}
+
+void draw_sprite_anim(UISpriteAnim* a, Renderer* renderer) {
+  if (a->num_sprites <= 0) return;
+
+  local_draw_sprite(&a->sprites[a->current_sprite], renderer, a->pos); 
+
+  if (a->current_sprite == a->num_sprites-1 && !a->loop) {
+    return;
+  }
+
+  a->wait--;
+  
+  if (a->wait > 0) return;
+
+  a->current_sprite++;
+  if (a->current_sprite >= a->num_sprites && a->loop) {
+    a->current_sprite = 0;
+  } 
+
+  a->wait = (a->current_sprite < a->num_sprites) ? a->delay[a->current_sprite] : 0;
 }

@@ -66,3 +66,29 @@ UISprite create_uisprite(int x, int y, const char* sprite) {
   ui_sprite.visible = true;
   return ui_sprite;
 }
+
+UISpriteAnim create_uisprite_anim(int x, int y) {
+  UISpriteAnim ui_sprite_anim;
+  ui_sprite_anim.type = FIGURE_SPRITE_ANIM;
+  ui_sprite_anim.pos.x = x;
+  ui_sprite_anim.pos.y = y;
+  ui_sprite_anim.color = UI_COLOR_WHITE;
+  ui_sprite_anim.visible = true;
+  ui_sprite_anim.sprites = NULL;
+  ui_sprite_anim.delay = NULL;
+  ui_sprite_anim.current_sprite=0;
+  ui_sprite_anim.num_sprites=0;
+  ui_sprite_anim.wait=0;
+  ui_sprite_anim.loop = true;
+
+  return ui_sprite_anim;
+ 
+}
+void add_sprite_to_anim(UISpriteAnim* anim, UISprite* sprite, int delay) {
+  anim->num_sprites++;
+  anim->sprites = realloc(anim->sprites, sizeof(UISprite)*anim->num_sprites);
+  anim->delay = realloc(anim->delay, sizeof(int)*anim->num_sprites);
+  anim->sprites[anim->num_sprites-1] = *sprite;
+  anim->delay[anim->num_sprites-1] = delay;
+}
+
