@@ -1,11 +1,12 @@
-#ifndef GAME_H
-#define GAME_H
+#ifndef RENDERER_H
+#define RENDERER_H
 
 #include <engine/ui.h>
 #include <engine/geometry.h>
 #include <engine/terminal.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 typedef struct {
 	Terminal t;
@@ -19,8 +20,8 @@ void init_colors(void);
 void init_ncurses(void);
 void refresh_renderer_size(Renderer* renderer);
 Renderer* init_renderer(int width, int height);
-void renderer_render(Renderer* renderer, int ch);
-void renderer_loop(Renderer* renderer);
+void renderer_render(Renderer* renderer, void (*game_logic)());
+void renderer_loop(Renderer* renderer, void (*game_logic)());
 void renderer_end(Renderer* renderer);
 bool can_render(Renderer* renderer);
 void engine_print(const char* txt, Renderer* renderer, ...);

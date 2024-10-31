@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <ncurses.h>
+#include <stdio.h>
 
 int frame_number = 0;
 
@@ -65,7 +66,7 @@ void draw_renderer_border(Renderer* renderer) {
 	draw_element(&r, renderer);
 }
 
-void engine_render(Renderer* renderer, int ch) {
+void engine_render(Renderer* renderer, void (*game_logic)()) {
 	if (!can_render(renderer)) {
 			const char* msg = "INCREASE TERMINAL SIZE";
 			int msg_len = strlen(msg);
@@ -75,6 +76,7 @@ void engine_render(Renderer* renderer, int ch) {
 			
 			return;
 	}
+	game_logic();
 	//test draw point
 	engine_print("frame: %d", renderer, frame_number);
 
@@ -82,14 +84,14 @@ void engine_render(Renderer* renderer, int ch) {
 }
 
 
-void renderer_loop(Renderer* renderer) {
+void renderer_loop(Renderer* renderer, void (*game_logic)()) {
 	int ch = 0;
 	do {
 		timeout(1);
 		ch = getch();
 		clear();
 		refresh_renderer_size(renderer);
-		engine_render(renderer, ch);
+		engine_render(renderer, game_logic);
 		draw_renderer_border(renderer);
 		refresh();
 	} while(ch != 'q');
