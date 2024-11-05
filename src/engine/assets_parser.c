@@ -62,7 +62,6 @@ void add_anim_asset(const char* name, json_object_t* frames_obj, bool loop) {
           frames_assets = realloc(frames_assets, frames_count*sizeof(Asset*));
           frames_order[frames_count-1] = frame;
           frames_assets[frames_count-1] = sprite_asset;
-          printf("unsorted asset: %s - frame: %d\n", sprite_asset->alias, frame);
         break;
         case 1:
           add_sprite_to_anim(anim, (UISprite*)frames_assets[frames_count++]->ui_figure, 1);
