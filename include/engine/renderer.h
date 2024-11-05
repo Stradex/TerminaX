@@ -21,7 +21,7 @@ void init_ncurses(void);
 void refresh_renderer_size(Renderer* renderer);
 Renderer* init_renderer(int width, int height);
 void renderer_render(Renderer* renderer, void (*game_logic)());
-void renderer_loop(Renderer* renderer, void (*game_logic)());
+void renderer_loop(Renderer* renderer, void* net_config, void (*game_logic)());
 void renderer_end(Renderer* renderer);
 bool can_render(Renderer* renderer);
 void engine_print(const char* txt, Renderer* renderer, ...);

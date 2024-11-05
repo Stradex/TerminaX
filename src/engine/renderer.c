@@ -1,6 +1,7 @@
 #include <engine/renderer.h>
 #include <engine/draw.h>
 #include <engine/ui.h>
+#include <engine/networking.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -71,7 +72,7 @@ void draw_renderer_border(Renderer* renderer) {
 	draw_element(&r, renderer);
 }
 
-void engine_render(Renderer* renderer, void (*game_logic)()) {
+void engine_render(Renderer* renderer, void (*game_logic)(int), int ch) {
 	if (!can_render(renderer)) {
 			const char* msg = "INCREASE TERMINAL SIZE";
 			int msg_len = strlen(msg);
@@ -81,22 +82,22 @@ void engine_render(Renderer* renderer, void (*game_logic)()) {
 			
 			return;
 	}
-	game_logic();
+	game_logic(ch);
 
-  engine_print("frame: %d", renderer, frame_number);
 
 	frame_number++;
 }
 
 
-void renderer_loop(Renderer* renderer, void (*game_logic)()) {
+void renderer_loop(Renderer* renderer, void* net_config, void (*game_logic)(int)) {
 	int ch = 0;
 	do {
 		timeout(1);
 		ch = getch();
 		clear();
+    net_frame((NetworkSettings*)net_config, renderer);
 		refresh_renderer_size(renderer);
-		engine_render(renderer, game_logic);
+		engine_render(renderer, game_logic, ch);
 		draw_renderer_border(renderer);
 		refresh();
 	} while(ch != 'q');
