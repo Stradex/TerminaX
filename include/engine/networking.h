@@ -11,20 +11,31 @@
 #include <stdbool.h>
 #include <poll.h>
 
-#define MAXDATASIZE     64
-#define DEFAULT_PORT    10666
-#define NET_FRAME_MS    25
-#define NET_PROTO_UDP   0
-#define NET_PROTO_TCP   1
+#define MAXDATASIZE         64
+#define DEFAULT_PORT        10666
+#define NET_FRAME_MS        20
+#define NET_PROTO_UDP       0
+#define NET_PROTO_TCP       1
+#define NET_UNUSED_FD      -2
+#define NET_CLIENT_UDP_FD  -3
 
 typedef struct {
   bool is_local;
-  struct sockaddr_storage addr;
-  socklen_t addr_len;
+  struct sockaddr tcp_addr;
+  socklen_t tcp_addr_len;
+  struct sockaddr udp_addr;
+  socklen_t udp_addr_len;
   struct pollfd udp_pfd;
   struct pollfd tcp_pfd;
   void* next;
 } NetConnection;
+
+typedef struct {
+  struct sockaddr addr;
+  socklen_t addr_len;
+  int fd;
+} SocketConnection;
+
 
 typedef struct {
   struct pollfd* pfds;
