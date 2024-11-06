@@ -29,7 +29,7 @@ void packet_received(const char* data) {
 void game_frame(int ch) {
  
   if (ch == 's') {
-    net_send_packet("TEST PACKET");
+    net_send_packet("TEST PACKET", NET_PROTO_TCP);
     packet_sent_timeout=10;
   } 
 

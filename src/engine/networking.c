@@ -11,18 +11,27 @@
 #include <netdb.h>
 #include <poll.h>
 
+/************************************************
+* NET STRUCTURE:
+*   TCP -> Handling connections and important game events
+*   UPD -> frame packets / non vital packets (ignore packets from
+*         non TCP connected client listed at _pfds dynamic array)
+*************************************************/
+
 bool _socket_created=false;
 bool _is_server=false;
 
-int _fd_count;
-int _fd_size;
-int _local_socket;
-struct pollfd *_pfds;
+NetConnection* _connections = NULL;
 
 int _packets_received = 0;
 
+//DEBUG STUFF
 
-int get_listener_socket_client(const char* hostname, int port) {
+int _dbg_send_packet_timout = 0;
+
+//END DEBUG STUFF
+
+int get_listener_socket_client(const char* hostname, int port, int protocol) {
   int sockfd, numbytes;
   struct addrinfo hints, *serverinfo, *p;
   int rv;
@@ -30,7 +39,7 @@ int get_listener_socket_client(const char* hostname, int port) {
 
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_socktype = (protocol == NET_PROTO_TCP) ? SOCK_STREAM : SOCK_DGRAM;
 
   if ((rv = getaddrinfo(hostname, port_as_str(port), &hints, &serverinfo)) != 0) {
     fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
@@ -43,7 +52,7 @@ int get_listener_socket_client(const char* hostname, int port) {
       perror("client: socket");
       continue;
     }
-    if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+    if (protocol == NET_PROTO_TCP && connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
       close(sockfd);
       perror("client: connect");
       continue;
@@ -63,7 +72,7 @@ int get_listener_socket_client(const char* hostname, int port) {
 }
 
 
-int get_listener_socket(int port) {
+int get_listener_socket(int port, int protocol) {
   int listener;     // Listening socket descriptor
   int yes=1;        // For setsockopt() SO_REUSEADDR, below
   int rv;
@@ -73,7 +82,7 @@ int get_listener_socket(int port) {
   //Get us a socket and bind it
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_socktype = (protocol == NET_PROTO_TCP) ? SOCK_STREAM : SOCK_DGRAM;
   hints.ai_flags = AI_PASSIVE;
   if ((rv = getaddrinfo(NULL, port_as_str(port), &hints, &ai)) != 0) {
     fprintf(stderr, "pollserver: %s\n", gai_strerror(rv));
@@ -103,7 +112,7 @@ int get_listener_socket(int port) {
     return -1;
   }
   // Listen 
-  if (listen(listener, 10) == -1) {
+  if (protocol == NET_PROTO_TCP && listen(listener, 10) == -1) {
     return -1;
   }
   
@@ -128,6 +137,8 @@ void add_to_pdfs(struct pollfd* pdfs[], int newfd, int *fd_count, int* fd_size) 
 void del_from_pdfs(struct pollfd* pdfs[], int i, int *fd_count) {
   // Copy the one from the end over this one
   pdfs[i] = pdfs[*fd_count-1];
+
+  // TODO: remove from _udp_pfds
   (*fd_count)--;
 }
 
@@ -149,7 +160,6 @@ const char* port_as_str(const int port) {
 bool is_net_game() {
   return _socket_created;
 }
-
 
 NetworkSettings* create_from_params(int argc, char* argv[]) {
   NetworkSettings* n = calloc(1, sizeof(NetworkSettings));
@@ -183,13 +193,23 @@ bool is_net_client() {
   return is_net_game() && !_is_server;
 }
 
-int net_send_packet(const char* data) {
-  for (int i=0; i < _fd_count; i++) {
-    if (_is_server && _pfds[i].fd == _local_socket) {
+int net_send_packet(const char* data, int protocol) {
+  NetConnection *p = NULL;
+  for (p=_connections; p != NULL; p = (NetConnection*)p->next) {
+    if (_is_server && p->is_local) {
       continue;
     }
-    if (send(_pfds[i].fd, data, strlen(data), 0) == -1) {
-      perror("send");
+    switch (protocol) {
+      case NET_PROTO_TCP:
+        if (send(p->tcp_pfd.fd, data, strlen(data), 0) == -1) {
+          perror("send");
+        }
+      break;
+      case NET_PROTO_UDP:
+        //if (sendto(udp_pfd.fd, data, strlen(data), 0) == -1) {
+        //  perror("send");
+        //}
+      break;
     }
   } 
 
@@ -198,23 +218,28 @@ int net_send_packet(const char* data) {
 
 
 int net_host(int port) {
+  int listener_tcp, listener_udp;
   printf("hosting server at port %d...\n", port);
-  _fd_count = 0;
-  _fd_size = 2;
-  _pfds = malloc((sizeof *_pfds)*_fd_size);
 
   //set up and get a listener socket
-  _local_socket = get_listener_socket(port);
-
-  if (_local_socket == -1) {
-    fprintf(stderr, "error getting listener socket\n");
+  listener_tcp = get_listener_socket(port, NET_PROTO_TCP);
+  listener_udp = get_listener_socket(port, NET_PROTO_UDP);
+  if (listener_tcp == -1) {
+    fprintf(stderr, "error getting listener_tcp socket\n");
+    exit(1);
+  }
+  if (listener_udp == -1) {
+    fprintf(stderr, "error getting listener_udp socket\n");
     exit(1);
   }
   
-  //Add listener to set
-  _pfds[0].fd = _local_socket;
-  _pfds[0].events = POLLIN;  //Report ready-to-read on incoming connection
-  _fd_count = 1; //for the listener
+  _connections = calloc(1, sizeof(NetConnection));
+  _connections->is_local = true;
+  _connections->next = NULL;
+  _connections->tcp_pfd.fd = listener_tcp;
+  _connections->tcp_pfd.events = POLLIN;
+  _connections->udp_pfd.fd = listener_udp;
+  _connections->udp_pfd.events = POLLIN;
 
   //We call poll in the engine_frame/tic
   _socket_created = true;
@@ -225,52 +250,145 @@ int net_host(int port) {
 int net_connect(const char* hostname, int port) {
   printf("connecting %s:%d...\n", hostname, port);
 
+  int listener_tcp, listener_udp;
   int nbytes;
 
-  _local_socket = get_listener_socket_client(hostname, port);
-  if (_local_socket == -1) {
-    fprintf(stderr, "client: error getting socket\n");
+  listener_tcp = get_listener_socket_client(hostname, port, NET_PROTO_TCP);
+  listener_udp = get_listener_socket_client(hostname, port, NET_PROTO_UDP);
+  if (listener_tcp == -1) {
+    fprintf(stderr, "client: error getting socket tcp\n");
+    exit(1);
+  }
+  if (listener_udp == -1) {
+    fprintf(stderr, "client: error getting socket udp\n");
     exit(1);
   }
 
-  _pfds = malloc(2*sizeof(*_pfds));
-  _pfds[0].fd = _local_socket; //SOCKET
-  _pfds[0].events = POLLIN; // report ready-to-read events
-  _fd_count = 1;
+  _connections = calloc(1, sizeof(NetConnection));
+  _connections->is_local = true;
+  _connections->next = NULL;
+  _connections->tcp_pfd.fd = listener_tcp;
+  _connections->tcp_pfd.events = POLLIN;
+  _connections->udp_pfd.fd = listener_udp;
+  _connections->udp_pfd.events = POLLIN;
 
   _socket_created = true;
   _is_server = false;
   printf("client connected\n");
 }
 
-void net_server_frame(NetworkSettings* net_config, Renderer* r) {
+int get_connections_count() {
+  NetConnection* p;
+  int i=0;
+  for (p = _connections; p != NULL; p = (NetConnection*) p->next) {
+    if (p->is_local) {
+      continue;
+    }
+    i++;
+  }
+  return i;
 
-  engine_print("server frame: clients: %d\n", r, _fd_count-1);
+}
+
+void add_net_connection(NetConnection* n) {
+  NetConnection* p;
+  for (p = _connections; p->next != NULL; p = (NetConnection *)p->next);
+
+  if (p==NULL) {
+    fprintf(stderr, "failed to add new connection\n");
+    exit(1);
+  }
+
+  p->next = n;
+}
+
+NetConnection* get_local_connection() {
+  NetConnection* p;
+  int i=0;
+  for (i=0, p = _connections; p != NULL; i++, p = (NetConnection*) p->next) {
+    if (p->is_local) {
+      return p;
+    }
+  }
+  return NULL;
+}
+
+bool delete_net_connection_by_tcp_fd(int tcp_fd) {
+  NetConnection* current=NULL;
+  NetConnection* previous=NULL;
+  for (current = _connections; current != NULL; previous = current, current = (NetConnection*) current->next) {
+    if (previous && current->tcp_pfd.fd == tcp_fd) {
+      previous->next = current->next;
+      return true;
+    }
+  }
+  return false;
+
+}
+
+NetConnection* get_net_connection(int index) {
+  NetConnection* p;
+  int i;
+  for (i=0, p = _connections; p != NULL; i++, p = (NetConnection*)p->next) {
+    if (i == index) {
+      return p;
+    }
+  }
+  return NULL;
+}
+
+ListPollfd get_all_pfds(int protocol) {
+  ListPollfd pfds_list;
+  pfds_list.pfds = NULL;
+  pfds_list.size = 0;
+  NetConnection* p;
+  int i=0;
+  for (i=0, p = _connections; p != NULL; i++, p = (NetConnection*) p->next, pfds_list.size++) {
+    pfds_list.pfds=(struct pollfd*)realloc(pfds_list.pfds, (i+1)*sizeof(struct pollfd));
+    if (protocol == NET_PROTO_TCP) {
+      pfds_list.pfds[pfds_list.size] = p->tcp_pfd;
+    } else {
+      pfds_list.pfds[pfds_list.size] = p->udp_pfd;
+    }
+  }
+  
+  return pfds_list;
+}
+
+void net_server_handle_tcp(NetworkSettings* net_config) {
+  ListPollfd pfds_list = get_all_pfds(NET_PROTO_TCP);
   int newfd;                          // Newly accept()ed socket descriptor
   struct sockaddr_storage remoteaddr; //Client address
   socklen_t addrlen;
   char buf[256];                      // Buffer for client data
   char remoteIP[INET6_ADDRSTRLEN];
+  int local_tcp_fd = (get_local_connection())->tcp_pfd.fd; 
 
-  int poll_count = poll(_pfds, _fd_count, NET_FRAME_MS);
+  int poll_count = poll(pfds_list.pfds, pfds_list.size, NET_FRAME_MS);
   if (poll_count == -1) {
     perror("poll");
     exit(1);
   }
 
-  //Run through the existing connections looking for data to read.
-  for (int i=0; i < _fd_count; i++) {
+  //Run through the existing _connections looking for data to read.
+  for (int i=0; i < pfds_list.size; i++) {
     //Check if someone's ready to read
-    if (_pfds[i].revents & POLLIN) {  //We got one!!
-      if (_pfds[i].fd == _local_socket) {
+    if (pfds_list.pfds[i].revents & POLLIN) {  //We got one!!
+      if (pfds_list.pfds[i].fd == local_tcp_fd) {
         //If _local_socket is ready to read, handle new connection
 
         addrlen = sizeof remoteaddr;
-        newfd = accept(_local_socket, (struct sockaddr *)&remoteaddr, &addrlen);
+        newfd = accept(local_tcp_fd, (struct sockaddr *)&remoteaddr, &addrlen);
         if (newfd == -1) {
           perror("accept");
         } else {
-          add_to_pdfs(&_pfds, newfd, &_fd_count, &_fd_size);
+          NetConnection* new_conn = calloc(1, sizeof(NetConnection));
+          new_conn->is_local = false;
+          new_conn->next = NULL;
+          new_conn->tcp_pfd.fd = newfd;
+          new_conn->tcp_pfd.events = POLLIN;
+          add_net_connection(new_conn);
+
           printf("pollserver: new connection from %s on socket %d\n", inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr), remoteIP, INET6_ADDRSTRLEN), newfd);
           if (net_config->client_connect) {
             net_config->client_connect();
@@ -279,9 +397,9 @@ void net_server_frame(NetworkSettings* net_config, Renderer* r) {
       } else {
         //If not the _local_socket, we're just a regular client.
         memset(buf, 0, sizeof(buf));
-        int nbytes = recv(_pfds[i].fd, buf, sizeof buf, 0);
-        int sender_fd = _pfds[i].fd;
-        
+        int nbytes = recv(pfds_list.pfds[i].fd, buf, sizeof buf, 0);
+        int sender_fd = pfds_list.pfds[i].fd;
+       
         if (nbytes <= 0) {
           //Got error or connection closed by client
           if (nbytes == 0) {
@@ -291,19 +409,24 @@ void net_server_frame(NetworkSettings* net_config, Renderer* r) {
             perror("recv");
           }
 
-          close(_pfds[i].fd); //bye
-          del_from_pdfs(&_pfds, i, &_fd_count);
+          close(pfds_list.pfds[i].fd); //bye
+          if (!delete_net_connection_by_tcp_fd(pfds_list.pfds[i].fd)) {
+            fprintf(stderr, "server: error trying to delete connection\n");
+            exit(1);
+          }
+
           if (net_config->client_disconnect) {
             net_config->client_disconnect();
           }
         } else {
           //We got some data from a client
           printf("client: %s\n", buf);
+          _packets_received++;
 
-          for (int j=0; j < _fd_count; j++) {
+          for (int j=0; j < pfds_list.size; j++) {
             // Send to everyone
-            int dest_fd = _pfds[j].fd;
-            if (dest_fd == _local_socket || dest_fd == sender_fd) {
+            int dest_fd = pfds_list.pfds[j].fd;
+            if (dest_fd == local_tcp_fd || dest_fd == sender_fd) {
               continue;
             }
             if (send(dest_fd, buf, nbytes, 0) == -1) {
@@ -320,21 +443,35 @@ void net_server_frame(NetworkSettings* net_config, Renderer* r) {
       }
     }
   }
+
+  if (pfds_list.pfds) {
+    free(pfds_list.pfds);
+  }
 }
 
-void net_client_frame(NetworkSettings* net_config, Renderer* r) {
-  engine_print("client frame: %d", r, _packets_received);
+void net_server_frame(NetworkSettings* net_config, Renderer* r) {
+  engine_print("server frame: clients: %d\n", r, get_connections_count());
+  net_server_handle_tcp(net_config);
+  //net_server_handle_udp(net_config);
+}
+
+
+void net_client_handle_tcp(NetworkSettings* net_config, Renderer* r) {
+  ListPollfd pfds_list = get_all_pfds(NET_PROTO_TCP);
+  int newfd;                          // Newly accept()ed socket descriptor
   char buf[MAXDATASIZE];
   int nbytes;
 
-  int poll_count = poll(_pfds, 1, NET_FRAME_MS);
+  int poll_count = poll(pfds_list.pfds, pfds_list.size, NET_FRAME_MS);
   if (poll_count == -1) {
     perror("poll");
     exit(1);
   }
-  if (_pfds[0].revents & POLLIN) {
+
+  //engine_print("poll count: %d", r, poll_count);
+  if (pfds_list.pfds[0].revents & POLLIN) {
     memset(buf, 0, sizeof(buf));
-    nbytes = recv(_pfds[0].fd, buf, sizeof buf, 0);
+    nbytes = recv(pfds_list.pfds[0].fd, buf, sizeof buf, 0);
     if (nbytes <= 0) {
       if (nbytes == 0) {
         fprintf(stderr, "client: server stopped\n");
@@ -350,9 +487,13 @@ void net_client_frame(NetworkSettings* net_config, Renderer* r) {
 
     _packets_received++;
   }
+
+
 }
+void net_client_frame(NetworkSettings* net_config, Renderer* r) {
 
-
+  net_client_handle_tcp(net_config, r);
+}
 
 void init_net(NetworkSettings* net_config) {
   printf("init networking\n");

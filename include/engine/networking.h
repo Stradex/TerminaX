@@ -9,16 +9,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <poll.h>
 
-#define MAXDATASIZE 64
-#define DEFAULT_PORT 10666
-#define NET_FRAME_MS 25
+#define MAXDATASIZE     64
+#define DEFAULT_PORT    10666
+#define NET_FRAME_MS    25
+#define NET_PROTO_UDP   0
+#define NET_PROTO_TCP   1
 
 typedef struct {
-  int userid;
-  char* username;
-  bool is_client;
-} NetUserData;
+  bool is_local;
+  struct sockaddr_storage addr;
+  socklen_t addr_len;
+  struct pollfd udp_pfd;
+  struct pollfd tcp_pfd;
+  void* next;
+} NetConnection;
+
+typedef struct {
+  struct pollfd* pfds;
+  int size;
+} ListPollfd;
 
 typedef struct {
   bool is_server;
@@ -40,8 +51,8 @@ NetworkSettings* create_from_params(int argc, char* argv[]);
 bool is_net_server();
 bool is_net_client();
 bool is_net_game();
-void net_frame( NetworkSettings* net_config, Renderer* r);
-int net_send_packet(const char* data);
+void net_frame(NetworkSettings* net_config, Renderer* r);
+int net_send_packet(const char* data, int protocol);
 void init_net(NetworkSettings* net_config);
 
 #endif
