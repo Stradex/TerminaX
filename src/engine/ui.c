@@ -92,3 +92,22 @@ void add_sprite_to_anim(UISpriteAnim* anim, UISprite* sprite, int delay) {
   anim->delay[anim->num_sprites-1] = delay;
 }
 
+void free_ui_element(void* f) {
+  UIFigure* element = (UIFigure*)f;
+  switch (element->type)  {
+    case FIGURE_TEXT:
+      UIText* t = (UIText*)f;
+      if (t->text) {
+        free(t->text);
+      }
+    break;
+    case FIGURE_SPRITE:
+      UISprite* s = (UISprite*)f;
+      if (s->sprite) {
+        free(s->sprite);
+      }
+    break;
+    default:
+    break;
+  } 
+}

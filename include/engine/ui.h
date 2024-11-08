@@ -125,4 +125,6 @@ UISprite create_uisprite(int x, int y, const char* sprite);
 UISpriteAnim create_uisprite_anim(int x, int y);
 void add_sprite_to_anim(UISpriteAnim* anim, UISprite* sprite, int delay);
 
+void free_ui_element(void* f);
+
 #endif

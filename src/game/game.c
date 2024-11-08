@@ -2,6 +2,7 @@
 #include <engine/renderer.h>
 #include <engine/engine.h>
 #include <engine/networking.h>
+#include <engine/assets_parser.h>
 
 Game* create_game(int width, int height, void (*game_logic)(int), int argc, char* argv[]) {
 	Game *g = calloc(1, sizeof(Game));
@@ -12,6 +13,11 @@ Game* create_game(int width, int height, void (*game_logic)(int), int argc, char
 	return g;
 }
 
+void game_end(Game* game) {
+  free_all_assets();
+  free(game->renderer);
+  free(game);
+}
 
 void game_start(Game* game) {
   init_net(game->net_config);

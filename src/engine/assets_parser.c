@@ -234,3 +234,21 @@ bool init_assets(void) {
   json_free(&element);
   return true;
 }
+
+void free_asset(Asset* a) {
+  if (a->alias) {
+    free(a->alias);
+  }
+  if (a->ui_figure) {
+    free_ui_element(a->ui_figure);
+  }
+}
+
+void free_all_assets() {
+  for (int i=0; i < global_assets_count; i++) {
+    free_asset(&global_assets[i]);
+  } 
+  free(global_assets);
+}
+
+

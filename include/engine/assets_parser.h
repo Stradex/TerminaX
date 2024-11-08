@@ -14,4 +14,6 @@ UISprite load_sprite_from_file(const char* file, const char* brightmap_file);
 bool init_assets(void);
 Asset* get_asset(const char* alias);
 
+void free_all_assets();
+
 #endif
