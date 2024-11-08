@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <util/packet.h>
 
 int read_packet_int(void* data) {
@@ -11,6 +12,24 @@ int read_packet_int(void* data) {
     exit(1);
   }
   return ((PacketInt*)p)->value;
+}
+
+int8_t read_packet_short(void* data) {
+  Packet* p = (Packet*)data;
+  if (p->type != PACKET_SHORT) {
+    fprintf(stderr, "invalid packet type at read_packet_short\n");
+    exit(1);
+  }
+  return ((PacketShort*)p)->value;
+}
+
+uint8_t read_packet_ushort(void* data) {
+  Packet* p = (Packet*)data;
+  if (p->type != PACKET_USHORT) {
+    fprintf(stderr, "invalid packet type at read_packet_ushort\n");
+    exit(1);
+  }
+  return ((PacketUShort*)p)->value;
 }
 
 char read_packet_char(void* data) {
@@ -65,92 +84,125 @@ typedef struct {
 } PacketList;
 */
 
-void* serialize_packet_int(PacketInt* p, int *buffer_size) {
-  *buffer_size = sizeof(int)*2;
+void* serialize_packet_ushort(PacketUShort* p, uint8_t *buffer_size) {
+  *buffer_size = sizeof(uint8_t)*2;
   void *buffer = malloc(*buffer_size);
   if (!buffer) {
     perror("malloc failed");
     exit(1);
   }
   int offset = 0;
-  memcpy((char *)buffer + offset, &p->type, sizeof(int));
-  offset += sizeof(int);
-  memcpy((char *)buffer + offset, &p->value, sizeof(int));
+  memcpy((char *)buffer + offset, &p->type, sizeof(uint8_t));
+  offset += sizeof(uint8_t);
+  memcpy((char *)buffer + offset, &p->value, sizeof(uint8_t));
+
   return buffer;
 }
 
-void* serialize_packet_bool(PacketBool* p, int *buffer_size) {
-  *buffer_size = sizeof(int)+sizeof(bool);
+void* serialize_packet_short(PacketShort* p, uint8_t *buffer_size) {
+  *buffer_size = sizeof(uint8_t) + sizeof(int8_t);
   void *buffer = malloc(*buffer_size);
   if (!buffer) {
     perror("malloc failed");
     exit(1);
   }
   int offset = 0;
-  memcpy((char *)buffer + offset, &p->type, sizeof(int));
-  offset += sizeof(int);
+  memcpy((char *)buffer + offset, &p->type, sizeof(uint8_t));
+  offset += sizeof(uint8_t);
+  memcpy((char *)buffer + offset, &p->value, sizeof(int8_t));
+
+  return buffer;
+}
+
+
+void* serialize_packet_int(PacketInt* p, uint8_t *buffer_size) {
+  *buffer_size = sizeof(uint8_t) + sizeof(int);
+  void *buffer = malloc(*buffer_size);
+  if (!buffer) {
+    perror("malloc failed");
+    exit(1);
+  }
+  int offset = 0;
+  memcpy((char *)buffer + offset, &p->type, sizeof(uint8_t));
+  offset += sizeof(uint8_t);
+  memcpy((char *)buffer + offset, &p->value, sizeof(int));
+
+  return buffer;
+}
+
+void* serialize_packet_bool(PacketBool* p, uint8_t *buffer_size) {
+  *buffer_size = sizeof(uint8_t)+sizeof(bool);
+  void *buffer = malloc(*buffer_size);
+  if (!buffer) {
+    perror("malloc failed");
+    exit(1);
+  }
+  int offset = 0;
+  memcpy((char *)buffer + offset, &p->type, sizeof(uint8_t));
+  offset += sizeof(uint8_t);
   memcpy((char *)buffer + offset, &p->value, sizeof(bool));
   return buffer;
 }
 
-void* serialize_packet_char(PacketChar* p, int *buffer_size) {
-  *buffer_size = sizeof(int)+sizeof(char);
+void* serialize_packet_char(PacketChar* p, uint8_t *buffer_size) {
+  *buffer_size = sizeof(uint8_t)+sizeof(char);
   void *buffer = malloc(*buffer_size);
   if (!buffer) {
     perror("malloc failed");
     exit(1);
   }
   int offset = 0;
-  memcpy((char *)buffer + offset, &p->type, sizeof(int));
-  offset += sizeof(int);
+  memcpy((char *)buffer + offset, &p->type, sizeof(uint8_t));
+  offset += sizeof(uint8_t);
   memcpy((char *)buffer + offset, &p->value, sizeof(char));
   return buffer;
 }
 
-void* serialize_packet_string(PacketString* p, int *buffer_size) {
-  int len = strlen(p->value) + 1;
-  *buffer_size = sizeof(int) + sizeof(int) + len;
+void* serialize_packet_string(PacketString* p, uint8_t *buffer_size) {
+  uint8_t len = (uint8_t)(strlen(p->value)) + 1;
+  *buffer_size = sizeof(uint8_t)*2 + len;
   void *buffer = malloc(*buffer_size);
   if (!buffer) {
     perror("malloc failed");
     exit(1);
   }
   int offset = 0;
-  memcpy((char *)buffer + offset, &p->type, sizeof(int));
-  offset += sizeof(int);
-  memcpy((char *)buffer + offset, &len, sizeof(int));
+  memcpy((char *)buffer + offset, &p->type, sizeof(uint8_t));
+  offset += sizeof(uint8_t);
+  memcpy((char *)buffer + offset, &len, sizeof(uint8_t));
   if (len > 0) {
-    printf("len - %d\n", len);
-    offset += sizeof(int);
+    offset += sizeof(uint8_t);
     memcpy((char *)buffer + offset, p->value, len);
   }
   return buffer;
 }
 
-void* serialize_packet_list(PacketList* p, int *buffer_size) {
-  *buffer_size = sizeof(int);
-  void *buffer = malloc(sizeof(int)*2+64);
+void* serialize_packet_list(PacketList* p, uint8_t *buffer_size) {
+  *buffer_size = sizeof(uint8_t)*2;
+  void *buffer = malloc(sizeof(uint8_t)*2+64);
   if (!buffer) {
     perror("malloc failed");
     exit(1);
   }
   int offset = 0;
-  int count = 0;
-  memcpy((char *)buffer, &p->type, sizeof(int));
-  offset += sizeof(int);
+  uint8_t count = 0;
+  memcpy((char *)buffer, &p->type, sizeof(uint8_t));
+  offset += sizeof(uint8_t);
   PacketNode* pn;
   for (count=0, pn=p->elements; pn != NULL; pn = (PacketNode*)pn->next, count++);
-  memcpy((char *)buffer + sizeof(int), &count, sizeof(int));
-  offset += sizeof(int);
+  memcpy((char *)buffer + offset, &count, sizeof(uint8_t));
+  offset += sizeof(uint8_t);
   for(pn=p->elements; pn != NULL; pn = (PacketNode*)pn->next) {
-    int packet_buffer_size=0;
+
+    uint8_t packet_buffer_size=0;
     void* packet_buffer = serialize_packet(pn->element, &packet_buffer_size);
-    memcpy((char *)buffer + offset, &packet_buffer_size, sizeof(int));
-    offset += sizeof(int);
+    memcpy((char *)buffer + offset, &packet_buffer_size, sizeof(uint8_t));
+    offset += sizeof(uint8_t);
     memcpy((char *)buffer + offset, packet_buffer, packet_buffer_size);
     offset+= packet_buffer_size;
-    *buffer_size += sizeof(int) + packet_buffer_size;
+    *buffer_size += sizeof(uint8_t) + packet_buffer_size;
   }
+
   return buffer;
 }
 
@@ -200,24 +252,23 @@ Packet* clone_packet(Packet* p) {
 
 Packet* deserialize_packet_list(void* buffer) {
   PacketList *p = (PacketList*)buffer;
-  int offset = sizeof(int);
-  int count=0;
-  memcpy(&count, (char *)buffer + offset ,sizeof(int));
+  int offset = sizeof(uint8_t);
+  uint8_t count=0;
+  memcpy(&count, (char *)buffer + offset ,sizeof(uint8_t));
   PacketNode* first_node = NULL;
   PacketNode* prev_node = NULL;
 
   if (count > 0) {
-    offset+=sizeof(int);
+    offset+=sizeof(uint8_t);
     for (int i =0; i < count; i++) {
       PacketNode* pn = malloc(sizeof(PacketNode)); 
       if (prev_node) {
         prev_node->next = pn;
       }
-      int buffer_element_size = 0;
-      memcpy(&buffer_element_size, (char *)buffer + offset ,sizeof(int));
-      offset += sizeof(int);
+      uint8_t buffer_element_size = 0;
+      memcpy(&buffer_element_size, (char *)buffer + offset ,sizeof(uint8_t));
+      offset += sizeof(uint8_t);
       pn->element = clone_packet((Packet*)deserialize_packet((char *)buffer+offset));
-      //printf("value: %s\n", ((PacketString*)pn->element)->value);
       pn->next = NULL;
       offset += buffer_element_size;
       if (i==0) {
@@ -234,11 +285,12 @@ Packet* deserialize_packet_list(void* buffer) {
 }
 
 Packet* deserialize_packet_string(void* buffer) {
-  PacketString *p = (PacketString*)buffer;
-  int len=0;
-  int offset =  sizeof(int); 
-  memcpy(&len, buffer + offset , sizeof(int));
-  offset+=sizeof(int);
+  PacketString *p = malloc(sizeof(PacketString));
+  p->type = PACKET_STRING;
+  uint8_t len=0;
+  int offset =  sizeof(uint8_t); 
+  memcpy(&len, buffer + offset , sizeof(uint8_t));
+  offset+=sizeof(uint8_t);
   if (len > 0) {
         char* string_value = malloc(sizeof(char)*len);
         memcpy(string_value, (char*)buffer+offset, len);
@@ -249,8 +301,14 @@ Packet* deserialize_packet_string(void* buffer) {
   return (Packet*)p;
 }
 
-void* serialize_packet(Packet* p, int *buffer_size) {
+void* serialize_packet(Packet* p, uint8_t *buffer_size) {
   switch(p->type) {
+    case PACKET_SHORT:
+      return serialize_packet_short((PacketShort*)p, buffer_size);
+    break;
+    case PACKET_USHORT:
+      return serialize_packet_short((PacketUShort*)p, buffer_size);
+    break;
     case PACKET_INT:
       return serialize_packet_int((PacketInt*)p, buffer_size);
     break;
@@ -273,10 +331,21 @@ void* serialize_packet(Packet* p, int *buffer_size) {
 Packet* deserialize_packet(void* buffer) {
   Packet* p = (Packet*) buffer;
   switch(p->type) {
+    case PACKET_SHORT:
+      return (Packet*)create_packet_short( *((int8_t*)(buffer + sizeof(uint8_t))) );
+    break;
+    case PACKET_USHORT:
+      return (Packet*)create_packet_ushort( *((uint8_t*)(buffer + sizeof(uint8_t))) );
+    break;
+
     case PACKET_INT:
+      return (Packet*)create_packet_int( *((int*)(buffer + sizeof(uint8_t))) );
+    break;
     case PACKET_CHAR:
+      return (Packet*)create_packet_char( *((char*)(buffer + sizeof(uint8_t))) );
+    break;
     case PACKET_BOOL:
-      return p;
+      return (Packet*)create_packet_bool( *((bool*)(buffer + sizeof(uint8_t))) );
     break;
     case PACKET_STRING:
       return deserialize_packet_string(buffer);
@@ -291,7 +360,7 @@ Packet* deserialize_packet(void* buffer) {
 
 
 // SHORTHAND FUNCTIONS
-void* serialize_int(int value, int* buff_size) {
+void* serialize_int(int value, uint8_t* buff_size) {
   PacketInt p;
   p.type = PACKET_INT;
   p.value = value;
@@ -299,7 +368,23 @@ void* serialize_int(int value, int* buff_size) {
   return serialize_packet((Packet*)&p, buff_size);
 }
 
-void* serialize_char(char value, int* buff_size) {
+void* serialize_short(int8_t value, uint8_t* buff_size) {
+  PacketShort p;
+  p.type = PACKET_SHORT;
+  p.value = value;
+
+  return serialize_packet((Packet*)&p, buff_size);
+}
+
+void* serialize_ushort(uint8_t value, uint8_t* buff_size) {
+  PacketUShort p;
+  p.type = PACKET_USHORT;
+  p.value = value;
+
+  return serialize_packet((Packet*)&p, buff_size);
+}
+
+void* serialize_char(char value, uint8_t* buff_size) {
   PacketChar p;
   p.type = PACKET_CHAR;
   p.value = value;
@@ -307,7 +392,7 @@ void* serialize_char(char value, int* buff_size) {
   return serialize_packet((Packet*)&p, buff_size);
 }
 
-void* serialize_bool(bool value, int* buff_size) {
+void* serialize_bool(bool value, uint8_t* buff_size) {
   PacketChar p;
   p.type = PACKET_BOOL;
   p.value = value;
@@ -315,7 +400,7 @@ void* serialize_bool(bool value, int* buff_size) {
   return serialize_packet((Packet*)&p, buff_size);
 }
 
-void* serialize_string(const char* value, int* buff_size) {
+void* serialize_string(const char* value, uint8_t* buff_size) {
   PacketString p;
   p.type = PACKET_BOOL;
   p.value = (char* )value;
@@ -327,6 +412,20 @@ void* serialize_string(const char* value, int* buff_size) {
 PacketInt* create_packet_int(int value) {
   PacketInt* p = malloc(sizeof(PacketInt));
   p->type = PACKET_INT;
+  p->value = value;
+  return p;
+}
+
+PacketShort* create_packet_short(int8_t value) {
+  PacketShort* p = malloc(sizeof(PacketShort));
+  p->type = PACKET_SHORT;
+  p->value = value;
+  return p;
+}
+
+PacketUShort* create_packet_ushort(uint8_t value) {
+  PacketUShort* p = malloc(sizeof(PacketUShort));
+  p->type = PACKET_USHORT;
   p->value = value;
   return p;
 }
@@ -373,6 +472,18 @@ void add_packet_to_list(PacketList* list, Packet* p) {
   t_pn->next = pn;
 }
 
+const char* stringify_packet_ushort(PacketUShort* p) {
+  char* buf = malloc(sizeof(char)*16);
+  sprintf(buf, "SHORT: %u", p->value);
+  return (const char*)buf;
+}
+
+const char* stringify_packet_short(PacketShort* p) {
+  char* buf = malloc(sizeof(char)*16);
+  sprintf(buf, "SHORT: %d", p->value);
+  return (const char*)buf;
+}
+
 const char* stringify_packet_int(PacketInt* p) {
   char* buf = malloc(sizeof(char)*32);
   sprintf(buf, "INT: %d", p->value);
@@ -413,6 +524,13 @@ const char* stringify_packet_list(PacketList* p) {
 
 const char* stringify_packet(Packet* p) {
   switch(p->type) {
+    case PACKET_SHORT:
+      return stringify_packet_short((PacketShort*)p);
+    break;
+    case PACKET_USHORT:
+      return stringify_packet_ushort((PacketShort*)p);
+    break;
+
     case PACKET_INT:
       return stringify_packet_int((PacketInt*)p);
     break;
