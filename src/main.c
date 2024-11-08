@@ -8,29 +8,53 @@
 #include <engine/draw.h>
 #include <engine/geometry.h>
 #include <engine/assets_parser.h>
+#include <util/packet.h>
 
 Game* my_game;
 
 int client_connected_timeout = 0;
 int packet_sent_timeout = 0;
 int packet_received_timeout = 0;
-char* packet_buf;
+char packet_buf[200];
 
 void client_connected( void ) {
   client_connected_timeout = 10;
 }
 
-void packet_received(const char* data) {
+void packet_received(void* data) {
+  Packet* p = deserialize_packet(data);
+  if (p != NULL) {
+    memset(packet_buf, 0, sizeof(packet_buf));
+    sprintf(packet_buf, "%s", stringify_packet(p));
+  }
   packet_received_timeout = 10;
-  packet_buf = calloc(strlen(data)+1, sizeof(data));
-  strcpy(packet_buf, data);
+}
+
+void test_packets() {
+    PacketList* l = create_packet_list();
+    add_packet_to_list(l, (Packet*)create_packet_int(5));
+    add_packet_to_list(l, (Packet*)create_packet_int(7));
+
+    int buff_size = 0;
+    void* buff = serialize_packet((Packet*)l, &buff_size);
+    //void* buff = NULL;
+ 
+    
+    if (buff != NULL) {
+      net_send_packet(buff, NET_PROTO_UDP, buff_size);
+      packet_sent_timeout=10;
+    }
+    
+    if (buff) {
+      free(buff);
+    }
+
 }
 
 void game_frame(int ch) {
- 
+
   if (ch == 's') {
-    net_send_packet("TEST PACKET", NET_PROTO_UDP);
-    packet_sent_timeout=10;
+    test_packets();
   } 
 
   Asset* tmp_asset = get_asset("anim_test"); //LOAD FROM JSON FILE
@@ -46,7 +70,7 @@ void game_frame(int ch) {
 
   } else if (packet_sent_timeout > 0) {
 	  text = create_uitext(create_rect(34, 6, 25, 1), "SENDING"); 
-    textb = create_uitext(create_rect(34, 7, 25, 1), "PACKET");
+    textb = create_uitext(create_rect(34, 7, 25, 1), packet_buf);
     packet_sent_timeout--;
 
   } else  if (client_connected_timeout > 0) {
@@ -69,5 +93,6 @@ int main (int argc, char* argv[]) {
   my_game->net_config->client_connect = client_connected;
   my_game->net_config->packet_recv = packet_received;
 	game_start(my_game);
+
 	return 0;
 }

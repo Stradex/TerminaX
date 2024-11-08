@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include <poll.h>
 
-#define MAXDATASIZE         64
+#define MAXDATASIZE         100
 #define DEFAULT_PORT        10666
 #define NET_FRAME_MS        20
 #define NET_PROTO_UDP       0
@@ -50,7 +50,7 @@ typedef struct {
 	void (*client_connect)();
 	void (*client_disconnect)();
 	void (*server_disconnect)();
-	void (*packet_recv)(const char* buf);
+	void (*packet_recv)(void* buf);
 } NetworkSettings;
 
 void* get_in_addr(struct sockaddr *sa);
@@ -63,7 +63,7 @@ bool is_net_server();
 bool is_net_client();
 bool is_net_game();
 void net_frame(NetworkSettings* net_config, Renderer* r);
-int net_send_packet(const char* data, int protocol);
+int net_send_packet(void* data, int protocol, int buffer_size);
 void init_net(NetworkSettings* net_config);
 
 #endif

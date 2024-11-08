@@ -276,7 +276,7 @@ bool is_net_client() {
   return is_net_game() && !_is_server;
 }
 
-int net_send_packet(const char* data, int protocol) {
+int net_send_packet(void* buffer, int protocol, int buffer_size) {
   NetConnection* local_net = get_local_connection();
   NetConnection *p = NULL;
   for (p=_connections; p != NULL; p = (NetConnection*)p->next) {
@@ -285,12 +285,12 @@ int net_send_packet(const char* data, int protocol) {
     }
     switch (protocol) {
       case NET_PROTO_TCP:
-        if (send(p->tcp_pfd.fd, data, strlen(data), 0) == -1) {
+        if (send(p->tcp_pfd.fd, buffer, buffer_size, 0) == -1) {
           perror("send");
         }
       break;
       case NET_PROTO_UDP:
-       if (sendto(local_net->udp_pfd.fd, data, strlen(data), 0, &(p->udp_addr), p->udp_addr_len) == -1) {
+       if (sendto(local_net->udp_pfd.fd, buffer, buffer_size, 0, &(p->udp_addr), p->udp_addr_len) == -1) {
           perror("sendto");
        }
       break;
@@ -470,7 +470,7 @@ void net_handle_udp(NetworkSettings* net_config, Renderer* r) {
   struct sockaddr_storage their_addr;
   socklen_t addr_len;
   int numbytes;
-  char buf[MAXDATASIZE];
+  void* buf[MAXDATASIZE];
   char s[INET6_ADDRSTRLEN];
   if (!local_net) {
     fprintf(stderr, "server: local connection does not exists!\n");
@@ -509,7 +509,6 @@ void net_handle_udp(NetworkSettings* net_config, Renderer* r) {
 
         }
       } 
-      buf[numbytes] = '\0';
       if (net_config->packet_recv) {
         net_config->packet_recv(buf);
       }
@@ -522,7 +521,6 @@ void net_server_handle_tcp(NetworkSettings* net_config) {
   int newfd;                          // Newly accept()ed socket descriptor
   struct sockaddr_storage remoteaddr; //Client address
   socklen_t addrlen;
-  char buf[256];                      // Buffer for client data
   char remoteIP[INET6_ADDRSTRLEN];
   int local_tcp_fd = (get_local_connection())->tcp_pfd.fd; 
 
@@ -562,8 +560,9 @@ void net_server_handle_tcp(NetworkSettings* net_config) {
         }
       } else {
         //If not the _local_socket, we're just a regular client.
-        memset(buf, 0, sizeof(buf));
-        int nbytes = recv(pfds_list.pfds[i].fd, buf, sizeof buf, 0);
+
+        void* buf = malloc(MAXDATASIZE);
+        int nbytes = recv(pfds_list.pfds[i].fd, buf, MAXDATASIZE, 0);
         int sender_fd = pfds_list.pfds[i].fd;
        
         if (nbytes <= 0) {
@@ -586,7 +585,6 @@ void net_server_handle_tcp(NetworkSettings* net_config) {
           }
         } else {
           //We got some data from a client
-          printf("client: %s\n", buf);
           _packets_received++;
 
           for (int j=0; j < pfds_list.size; j++) {
