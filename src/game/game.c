@@ -19,9 +19,12 @@ void game_end(Game* game) {
   free(game);
 }
 
-void game_start(Game* game) {
+void game_init(Game* game) {
   init_net(game->net_config);
   init_engine();
+}
+
+void game_start(Game* game) {
 	renderer_loop(game->renderer, game->net_config, game->game_logic);
 	renderer_end(game->renderer);
 }
