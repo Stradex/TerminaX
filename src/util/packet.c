@@ -83,7 +83,7 @@ const char* read_packet_string(void* data) {
     fprintf(stderr, "invalid packet type at read_packet_string\n");
     exit(1);
   }
-  return (const char*)((PacketBool*)p)->value;
+  return (const char*)((PacketString*)p)->value;
 }
 
 /*
