@@ -108,7 +108,7 @@ void* serialize_packet_char(PacketChar* p, int *buffer_size) {
 }
 
 void* serialize_packet_string(PacketString* p, int *buffer_size) {
-  int len = strlen(p->value);
+  int len = strlen(p->value) + 1;
   *buffer_size = sizeof(int) + sizeof(int) + len;
   void *buffer = malloc(*buffer_size);
   if (!buffer) {
@@ -120,6 +120,7 @@ void* serialize_packet_string(PacketString* p, int *buffer_size) {
   offset += sizeof(int);
   memcpy((char *)buffer + offset, &len, sizeof(int));
   if (len > 0) {
+    printf("len - %d\n", len);
     offset += sizeof(int);
     memcpy((char *)buffer + offset, p->value, len);
   }
@@ -153,6 +154,50 @@ void* serialize_packet_list(PacketList* p, int *buffer_size) {
   return buffer;
 }
 
+PacketInt* clone_packet_int(PacketInt* p) {
+  PacketInt* pi = malloc(sizeof(PacketInt));
+  pi->type = p->type;
+  pi->value = p->value;
+  return pi;
+}
+
+PacketChar* clone_packet_char(PacketChar* p) {
+  PacketChar* pc = malloc(sizeof(PacketChar));
+  pc->type = p->type;
+  pc->value = p->value;
+  return pc;
+}
+PacketBool* clone_packet_bool(PacketBool* p) {
+  PacketBool* pb = malloc(sizeof(PacketBool));
+  pb->type = p->type;
+  pb->value = p->value;
+  return pb;
+}
+PacketString* clone_packet_string(PacketString* p) {
+  PacketString* ps = malloc(sizeof(PacketString));
+  ps->type = p->type;
+  ps->value = malloc((strlen(p->value)+1)*sizeof(char));
+  strcpy(ps->value, p->value);
+  return ps;
+}
+Packet* clone_packet(Packet* p) {
+  switch (p->type) {
+    case PACKET_INT:
+      return (Packet*)clone_packet_int((PacketInt*)p);
+    break;
+    case PACKET_BOOL:
+      return (Packet*)clone_packet_bool((PacketBool*)p);
+    break;
+    case PACKET_CHAR:
+      return (Packet*)clone_packet_char((PacketChar*)p);
+    break;
+    case PACKET_STRING:
+      return (Packet*)clone_packet_string((PacketString*)p);
+    break;
+  }
+  return p;
+}
+
 Packet* deserialize_packet_list(void* buffer) {
   PacketList *p = (PacketList*)buffer;
   int offset = sizeof(int);
@@ -171,9 +216,8 @@ Packet* deserialize_packet_list(void* buffer) {
       int buffer_element_size = 0;
       memcpy(&buffer_element_size, (char *)buffer + offset ,sizeof(int));
       offset += sizeof(int);
-      Packet* dp = (Packet*)deserialize_packet((char *)buffer+offset);
-      pn->element = malloc(buffer_element_size);
-      memcpy(pn->element, dp, buffer_element_size);
+      pn->element = clone_packet((Packet*)deserialize_packet((char *)buffer+offset));
+      //printf("value: %s\n", ((PacketString*)pn->element)->value);
       pn->next = NULL;
       offset += buffer_element_size;
       if (i==0) {
@@ -196,11 +240,12 @@ Packet* deserialize_packet_string(void* buffer) {
   memcpy(&len, buffer + offset , sizeof(int));
   offset+=sizeof(int);
   if (len > 0) {
-        p->value = (char *) buffer + offset;
+        char* string_value = malloc(sizeof(char)*len);
+        memcpy(string_value, (char*)buffer+offset, len);
+        p->value = string_value;
   } else {
         p->value = NULL;
   }
-
   return (Packet*)p;
 }
 
