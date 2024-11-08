@@ -110,4 +110,6 @@ void free_ui_element(void* f) {
     default:
     break;
   } 
+  free(f);
+  f = NULL;
 }

@@ -87,4 +87,8 @@ void* serialize_string(const char* value, uint8_t* buff_size);
 
 const char* stringify_packet(Packet* p);
 
+void free_all_packets();
+void free_buff(void* buff);
+void free_packet(Packet* p);
+
 #endif

@@ -5,6 +5,33 @@
 #include <stdint.h>
 #include <util/packet.h>
 
+void** _all_pointers_created = NULL;
+int _all_pointers_count = 0;
+
+
+void free_all_packets() {
+  for (int j=_all_pointers_count-1; j >= 0; j--) {
+    if (_all_pointers_created[j]) {
+      free(_all_pointers_created[j]);
+      _all_pointers_created[j] = NULL;
+    }
+  }
+  //free(_all_pointers_created);
+  _all_pointers_created = NULL;
+  _all_pointers_count = 0;
+}
+
+void add_to_packets_pointers_list(void* p) {
+  for (int i=0; i < _all_pointers_count; i++) {
+    if (_all_pointers_created[_all_pointers_count] == p) {
+      continue;
+    }
+  }
+  _all_pointers_created = realloc(_all_pointers_created, (_all_pointers_count+1)*sizeof(void*));
+  _all_pointers_created[_all_pointers_count] = p;
+  _all_pointers_count++;
+}
+
 int read_packet_int(void* data) {
   Packet* p = (Packet*)data;
   if (p->type != PACKET_INT) {
@@ -96,6 +123,8 @@ void* serialize_packet_ushort(PacketUShort* p, uint8_t *buffer_size) {
   offset += sizeof(uint8_t);
   memcpy((char *)buffer + offset, &p->value, sizeof(uint8_t));
 
+  add_to_packets_pointers_list(buffer);
+
   return buffer;
 }
 
@@ -110,6 +139,8 @@ void* serialize_packet_short(PacketShort* p, uint8_t *buffer_size) {
   memcpy((char *)buffer + offset, &p->type, sizeof(uint8_t));
   offset += sizeof(uint8_t);
   memcpy((char *)buffer + offset, &p->value, sizeof(int8_t));
+
+  add_to_packets_pointers_list(buffer);
 
   return buffer;
 }
@@ -127,6 +158,7 @@ void* serialize_packet_int(PacketInt* p, uint8_t *buffer_size) {
   offset += sizeof(uint8_t);
   memcpy((char *)buffer + offset, &p->value, sizeof(int));
 
+  add_to_packets_pointers_list(buffer);
   return buffer;
 }
 
@@ -141,6 +173,8 @@ void* serialize_packet_bool(PacketBool* p, uint8_t *buffer_size) {
   memcpy((char *)buffer + offset, &p->type, sizeof(uint8_t));
   offset += sizeof(uint8_t);
   memcpy((char *)buffer + offset, &p->value, sizeof(bool));
+
+  add_to_packets_pointers_list(buffer);
   return buffer;
 }
 
@@ -155,6 +189,8 @@ void* serialize_packet_char(PacketChar* p, uint8_t *buffer_size) {
   memcpy((char *)buffer + offset, &p->type, sizeof(uint8_t));
   offset += sizeof(uint8_t);
   memcpy((char *)buffer + offset, &p->value, sizeof(char));
+
+  add_to_packets_pointers_list(buffer);
   return buffer;
 }
 
@@ -174,6 +210,8 @@ void* serialize_packet_string(PacketString* p, uint8_t *buffer_size) {
     offset += sizeof(uint8_t);
     memcpy((char *)buffer + offset, p->value, len);
   }
+
+  add_to_packets_pointers_list(buffer);
   return buffer;
 }
 
@@ -203,6 +241,8 @@ void* serialize_packet_list(PacketList* p, uint8_t *buffer_size) {
     *buffer_size += sizeof(uint8_t) + packet_buffer_size;
   }
 
+
+  add_to_packets_pointers_list(buffer);
   return buffer;
 }
 
@@ -210,6 +250,8 @@ PacketInt* clone_packet_int(PacketInt* p) {
   PacketInt* pi = malloc(sizeof(PacketInt));
   pi->type = p->type;
   pi->value = p->value;
+
+  add_to_packets_pointers_list(pi);
   return pi;
 }
 
@@ -217,12 +259,16 @@ PacketChar* clone_packet_char(PacketChar* p) {
   PacketChar* pc = malloc(sizeof(PacketChar));
   pc->type = p->type;
   pc->value = p->value;
+
+  add_to_packets_pointers_list(pc);
   return pc;
 }
 PacketBool* clone_packet_bool(PacketBool* p) {
   PacketBool* pb = malloc(sizeof(PacketBool));
   pb->type = p->type;
   pb->value = p->value;
+
+  add_to_packets_pointers_list(pb);
   return pb;
 }
 PacketString* clone_packet_string(PacketString* p) {
@@ -230,6 +276,9 @@ PacketString* clone_packet_string(PacketString* p) {
   ps->type = p->type;
   ps->value = malloc((strlen(p->value)+1)*sizeof(char));
   strcpy(ps->value, p->value);
+
+  add_to_packets_pointers_list(ps->value);
+  add_to_packets_pointers_list(ps);
   return ps;
 }
 Packet* clone_packet(Packet* p) {
@@ -275,6 +324,7 @@ Packet* deserialize_packet_list(void* buffer) {
         first_node = pn;
       }
 
+      add_to_packets_pointers_list(pn);
       prev_node = pn;
     }
     p->elements = first_node;
@@ -298,6 +348,9 @@ Packet* deserialize_packet_string(void* buffer) {
   } else {
         p->value = NULL;
   }
+
+  add_to_packets_pointers_list(p->value);
+  add_to_packets_pointers_list(p);
   return (Packet*)p;
 }
 
@@ -413,6 +466,7 @@ PacketInt* create_packet_int(int value) {
   PacketInt* p = malloc(sizeof(PacketInt));
   p->type = PACKET_INT;
   p->value = value;
+  add_to_packets_pointers_list(p);
   return p;
 }
 
@@ -420,6 +474,8 @@ PacketShort* create_packet_short(int8_t value) {
   PacketShort* p = malloc(sizeof(PacketShort));
   p->type = PACKET_SHORT;
   p->value = value;
+
+  add_to_packets_pointers_list(p);
   return p;
 }
 
@@ -427,6 +483,8 @@ PacketUShort* create_packet_ushort(uint8_t value) {
   PacketUShort* p = malloc(sizeof(PacketUShort));
   p->type = PACKET_USHORT;
   p->value = value;
+
+  add_to_packets_pointers_list(p);
   return p;
 }
 
@@ -434,6 +492,8 @@ PacketBool* create_packet_bool(bool value) {
   PacketBool* p = malloc(sizeof(PacketBool));
   p->type = PACKET_BOOL;
   p->value = value;
+
+  add_to_packets_pointers_list(p);
   return p;
 }
 
@@ -441,6 +501,8 @@ PacketChar* create_packet_char(char value) {
   PacketChar* p = malloc(sizeof(PacketChar));
   p->type = PACKET_CHAR;
   p->value = value;
+
+  add_to_packets_pointers_list(p);
   return p;
 }
 
@@ -448,6 +510,8 @@ PacketString* create_packet_string(const char* value) {
   PacketString* p = malloc(sizeof(PacketString));
   p->type = PACKET_STRING;
   p->value = (char*)value;
+
+  add_to_packets_pointers_list(p);
   return p;
 }
 
@@ -455,6 +519,8 @@ PacketList* create_packet_list() {
   PacketList* p = malloc(sizeof(PacketList));
   p->type = PACKET_LIST;
   p->elements = NULL;
+
+  add_to_packets_pointers_list(p);
   return p;
 }
 
@@ -470,39 +536,52 @@ void add_packet_to_list(PacketList* list, Packet* p) {
   PacketNode* t_pn;
   for (t_pn = list->elements; t_pn->next != NULL; t_pn = t_pn->next);
   t_pn->next = pn;
+  add_to_packets_pointers_list(pn);
 }
 
 const char* stringify_packet_ushort(PacketUShort* p) {
   char* buf = malloc(sizeof(char)*16);
-  sprintf(buf, "SHORT: %u", p->value);
+  sprintf(buf, "USHORT: %u", p->value);
+
+  add_to_packets_pointers_list(buf);
   return (const char*)buf;
 }
 
 const char* stringify_packet_short(PacketShort* p) {
   char* buf = malloc(sizeof(char)*16);
   sprintf(buf, "SHORT: %d", p->value);
+
+  add_to_packets_pointers_list(buf);
   return (const char*)buf;
 }
 
 const char* stringify_packet_int(PacketInt* p) {
   char* buf = malloc(sizeof(char)*32);
   sprintf(buf, "INT: %d", p->value);
+
+  add_to_packets_pointers_list(buf);
   return (const char*)buf;
 }
 const char* stringify_packet_char(PacketChar* p) {
   char* buf = malloc(sizeof(char)*16);
   sprintf(buf, "CHAR: %c", p->value);
+
+  add_to_packets_pointers_list(buf);
   return (const char*)buf;
 }
 const char* stringify_packet_bool(PacketBool* p) {
   char* buf = malloc(sizeof(char)*16);
   sprintf(buf, "BOOL: %s", p->value ? "TRUE" : "FALSE");
+
+  add_to_packets_pointers_list(buf);
   return (const char*)buf;
 }
 
 const char* stringify_packet_string(PacketString* p) {
   char* buf = malloc(sizeof(char)*(strlen(p->value)+16));
   sprintf(buf, "STRING: %s", p->value);
+
+  add_to_packets_pointers_list(buf);
   return (const char*)buf;
 }
 const char* stringify_packet_list(PacketList* p) {
@@ -517,8 +596,10 @@ const char* stringify_packet_list(PacketList* p) {
   for (pn = p->elements; pn != NULL; pn = pn->next) {
     char* packet_child_str = stringify_packet(pn->element); 
     sprintf(buf, "%s - %s", buf, packet_child_str);
-    free(packet_child_str);
+    free_buff(packet_child_str);
   }
+
+  add_to_packets_pointers_list(buf);
   return (const char*)buf;
 }
 
@@ -548,4 +629,37 @@ const char* stringify_packet(Packet* p) {
     break;
   }
   return NULL;
+}
+
+void free_packet(Packet* p) {
+  switch (p->type) {
+    case PACKET_STRING:
+      free_buff(((PacketString*)p)->value);
+    break;
+    case PACKET_LIST:
+      PacketList* pl = (PacketList*)p;
+      PacketNode* pn;
+      for (pn = pl->elements; pn != NULL; pn = pn->next) {
+        if (pn->element) {
+          free_packet(pn->element);
+        }
+      }
+      if (pl->elements) {
+        free_buff(pl->elements);
+      }
+    break;
+
+  }
+  free_buff(p);
+}
+
+void free_buff(void* buff) {
+  for (int i=0; i < _all_pointers_count; i++) {
+    if (_all_pointers_created[i] == buff) {
+      free(buff);
+      _all_pointers_created[i] = NULL;
+      return;
+    }
+  }
+  free(buff);
 }

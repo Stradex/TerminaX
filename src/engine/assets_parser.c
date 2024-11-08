@@ -238,6 +238,7 @@ bool init_assets(void) {
 void free_asset(Asset* a) {
   if (a->alias) {
     free(a->alias);
+    a->alias = NULL;
   }
   if (a->ui_figure) {
     free_ui_element(a->ui_figure);
@@ -249,6 +250,7 @@ void free_all_assets() {
     free_asset(&global_assets[i]);
   } 
   free(global_assets);
+  global_assets = NULL;
 }
 
 
