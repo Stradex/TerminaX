@@ -1,3 +1,5 @@
+#ifndef __EMSCRIPTEN__
+
 #ifndef ASSETS_PARSER_H
 #define ASSETS_PARSER_H
 
@@ -16,4 +18,5 @@ Asset* get_asset(const char* alias);
 
 void free_all_assets();
 
+#endif
 #endif

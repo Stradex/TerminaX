@@ -1,3 +1,5 @@
+#ifndef __EMSCRIPTEN__
+
 #ifndef PACKET_H
 #define PACKET_H
 
@@ -91,4 +93,5 @@ void free_all_packets();
 void free_buff(void* buff);
 void free_packet(Packet* p);
 
+#endif
 #endif

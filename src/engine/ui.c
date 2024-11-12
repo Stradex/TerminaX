@@ -1,3 +1,5 @@
+#ifndef __EMSCRIPTEN__
+
 #include <engine/ui.h>
 #include <string.h>
 
@@ -113,3 +115,5 @@ void free_ui_element(void* f) {
   free(f);
   f = NULL;
 }
+
+#endif

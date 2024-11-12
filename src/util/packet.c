@@ -1,3 +1,5 @@
+#ifndef __EMSCRIPTEN__
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -663,3 +665,5 @@ void free_buff(void* buff) {
   }
   free(buff);
 }
+
+#endif

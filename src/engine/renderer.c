@@ -1,3 +1,5 @@
+#ifndef __EMSCRIPTEN__
+
 #include <engine/renderer.h>
 #include <engine/draw.h>
 #include <engine/ui.h>
@@ -5,7 +7,14 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <ncurses.h>
+
+#ifdef __EMSCRIPTEN__
+  #include <emscripten/emscripten.h>
+  #include <util/webcurses.h>
+#else
+  #include <ncurses.h>
+#endif
+
 #include <stdio.h>
 
 int frame_number = 0;
@@ -132,3 +141,5 @@ void engine_print(const char* txt, Renderer* renderer, ...) {
 			mvaddch(renderer->t.rows-1, i+1, print_str[i] | COLOR_PAIR(UI_COLOR_BLUE));
 	}
 }
+
+#endif

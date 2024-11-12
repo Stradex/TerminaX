@@ -1,3 +1,5 @@
+#ifndef __EMSCRIPTEN__
+
 #include <game/game.h>
 #include <engine/renderer.h>
 #include <engine/engine.h>
@@ -28,3 +30,5 @@ void game_start(Game* game) {
 	renderer_loop(game->renderer, game->net_config, game->game_logic);
 	renderer_end(game->renderer);
 }
+
+#endif

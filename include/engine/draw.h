@@ -1,3 +1,5 @@
+#ifndef __EMSCRIPTEN__
+
 #ifndef DRAW_H
 #define DRAW_H
 
@@ -12,4 +14,5 @@ void draw_text(UIText* e, Renderer* renderer);
 void draw_sprite(UISprite* s, Renderer* renderer);
 void draw_sprite_anim(UISpriteAnim* a, Renderer* renderer);
 
+#endif
 #endif

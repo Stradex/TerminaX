@@ -1,3 +1,5 @@
+#ifndef __EMSCRIPTEN__
+
 #ifndef UI_H
 #define UI_H
 
@@ -127,4 +129,5 @@ void add_sprite_to_anim(UISpriteAnim* anim, UISprite* sprite, int delay);
 
 void free_ui_element(void* f);
 
+#endif
 #endif

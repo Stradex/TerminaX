@@ -1,6 +1,9 @@
+#ifndef __EMSCRIPTEN__
+
 #include <engine/terminal.h>
 #include <sys/ioctl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 void update_terminal(Terminal* currentTerminal) {
@@ -16,3 +19,5 @@ Terminal* get_current_terminal(void) {
 	update_terminal(t);
 	return t;
 }
+
+#endif

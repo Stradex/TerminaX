@@ -1,3 +1,5 @@
+#ifndef __EMSCRIPTEN__
+
 #include <util/file_manager.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,3 +28,5 @@ const char *get_file_text(const char *path) {
 
   return (const char *)buffer;
 }
+
+#endif

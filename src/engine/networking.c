@@ -1,3 +1,5 @@
+#ifndef __EMSCRIPTEN__
+
 #include <engine/networking.h>
 #include <engine/renderer.h>
 #include <stdio.h>
@@ -679,3 +681,5 @@ void net_frame(NetworkSettings* net_config, Renderer* r) {
     net_client_frame(net_config, r);
   }
 }
+
+#endif

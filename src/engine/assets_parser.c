@@ -1,3 +1,5 @@
+#ifndef __EMSCRIPTEN__
+
 #include <engine/assets_parser.h>
 #include <util/file_manager.h>
 #include <util/json.h>
@@ -253,4 +255,4 @@ void free_all_assets() {
   global_assets = NULL;
 }
 
-
+#endif

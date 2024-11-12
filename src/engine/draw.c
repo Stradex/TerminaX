@@ -1,6 +1,15 @@
+#ifndef __EMSCRIPTEN__
+
 #include <engine/draw.h>
 #include <engine/geometry.h>
-#include <ncurses.h>
+
+#ifdef __EMSCRIPTEN__
+  #include <emscripten/emscripten.h>
+  #include <util/webcurses.h>
+#else
+  #include <ncurses.h>
+#endif
+
 #include <string.h>
 
 Position get_draw_position(Position pos, Renderer* renderer) {
@@ -172,3 +181,5 @@ void draw_sprite_anim(UISpriteAnim* a, Renderer* renderer) {
 
   a->wait = (a->current_sprite < a->num_sprites) ? a->delay[a->current_sprite] : 0;
 }
+
+#endif

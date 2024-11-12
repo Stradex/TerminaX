@@ -1,3 +1,5 @@
+#ifndef __EMSCRIPTEN__
+
 #ifndef NETWORKING_H
 #define NETWORKING_H
 
@@ -66,4 +68,5 @@ void net_frame(NetworkSettings* net_config, Renderer* r);
 int net_send_packet(void* data, int protocol, int buffer_size);
 void init_net(NetworkSettings* net_config);
 
+#endif
 #endif
