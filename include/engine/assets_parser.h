@@ -1,11 +1,13 @@
-#ifndef __EMSCRIPTEN__
 
 #ifndef ASSETS_PARSER_H
 #define ASSETS_PARSER_H
 
+#include <stdbool.h>
+
+#ifndef __EMSCRIPTEN__
+
 #include <util/json.h>
 #include <engine/ui.h>
-#include <stdbool.h>
 
 typedef struct {
   void* ui_figure;
@@ -13,10 +15,12 @@ typedef struct {
 } Asset;
 
 UISprite load_sprite_from_file(const char* file, const char* brightmap_file);
-bool init_assets(void);
 Asset* get_asset(const char* alias);
 
 void free_all_assets();
 
 #endif
+
+bool init_assets(void);
+
 #endif

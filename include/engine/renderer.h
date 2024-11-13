@@ -1,5 +1,3 @@
-#ifndef __EMSCRIPTEN__
-
 #ifndef RENDERER_H
 #define RENDERER_H
 
@@ -28,5 +26,4 @@ void renderer_end(Renderer* renderer);
 bool can_render(Renderer* renderer);
 void engine_print(const char* txt, Renderer* renderer, ...);
 
-#endif
 #endif

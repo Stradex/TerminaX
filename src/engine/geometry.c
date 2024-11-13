@@ -1,5 +1,3 @@
-#ifndef __EMSCRIPTEN__
-
 #include <engine/geometry.h>
 
 Position create_pos(int x, int y) {
@@ -17,5 +15,3 @@ Rect create_rect(int x, int y, int width, int height) {
 
 	return r;
 }
-
-#endif

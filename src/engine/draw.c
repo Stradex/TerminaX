@@ -1,5 +1,3 @@
-#ifndef __EMSCRIPTEN__
-
 #include <engine/draw.h>
 #include <engine/geometry.h>
 
@@ -181,5 +179,3 @@ void draw_sprite_anim(UISpriteAnim* a, Renderer* renderer) {
 
   a->wait = (a->current_sprite < a->num_sprites) ? a->delay[a->current_sprite] : 0;
 }
-
-#endif

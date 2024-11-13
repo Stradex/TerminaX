@@ -3,6 +3,7 @@
 #ifndef WEBCURSES_H
 #define WEBCURSES_H
 
+#include <emscripten/emscripten.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdarg.h>

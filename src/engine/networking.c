@@ -1,7 +1,7 @@
-#ifndef __EMSCRIPTEN__
-
 #include <engine/networking.h>
 #include <engine/renderer.h>
+
+#ifndef __EMSCRIPTEN__
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

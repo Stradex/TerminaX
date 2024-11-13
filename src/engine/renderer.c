@@ -1,9 +1,6 @@
-#ifndef __EMSCRIPTEN__
-
 #include <engine/renderer.h>
 #include <engine/draw.h>
 #include <engine/ui.h>
-#include <engine/networking.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -12,6 +9,7 @@
   #include <emscripten/emscripten.h>
   #include <util/webcurses.h>
 #else
+  #include <engine/networking.h>
   #include <ncurses.h>
 #endif
 
@@ -104,7 +102,9 @@ void renderer_loop(Renderer* renderer, void* net_config, void (*game_logic)(int)
 		timeout(1);
 		ch = getch();
 		clear();
+#ifndef __EMSCRIPTEN__
     net_frame((NetworkSettings*)net_config, renderer);
+#endif
 		refresh_renderer_size(renderer);
 		engine_render(renderer, game_logic, ch);
 		draw_renderer_border(renderer);
@@ -141,5 +141,3 @@ void engine_print(const char* txt, Renderer* renderer, ...) {
 			mvaddch(renderer->t.rows-1, i+1, print_str[i] | COLOR_PAIR(UI_COLOR_BLUE));
 	}
 }
-
-#endif

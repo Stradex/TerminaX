@@ -1,5 +1,3 @@
-#ifndef __EMSCRIPTEN__
-
 #ifndef TERMINAL_H
 #define TERMINAL_H
 
@@ -11,5 +9,4 @@ typedef struct {
 Terminal* get_current_terminal();
 void update_terminal(Terminal* currentTerminal);
 
-#endif
 #endif

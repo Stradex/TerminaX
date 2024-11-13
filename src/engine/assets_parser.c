@@ -1,14 +1,16 @@
-#ifndef __EMSCRIPTEN__
 
 #include <engine/assets_parser.h>
+#include <stdbool.h>
+#include <stdio.h>
+
+#ifndef __EMSCRIPTEN__
+
 #include <util/file_manager.h>
 #include <util/json.h>
 #include <engine/ui.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <stdbool.h>
 
 Asset* global_assets = NULL;
 int global_assets_count = 0;
@@ -253,6 +255,13 @@ void free_all_assets() {
   } 
   free(global_assets);
   global_assets = NULL;
+}
+
+#else
+
+bool init_assets(void) {
+  printf("Initializing assets...\n");
+  return true;
 }
 
 #endif

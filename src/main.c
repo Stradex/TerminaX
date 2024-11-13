@@ -1,20 +1,10 @@
 #include <stdio.h>
 
 #ifdef __EMSCRIPTEN__
-  #include <emscripten/emscripten.h>
   #include <util/webcurses.h>
 #else
   #include <ncurses.h>
 #endif
-
-
-#ifdef __EMSCRIPTEN__
-
-int main() {
-  printf("Hello world\n");
-}
-
-#else
 
 #include <string.h>
 #include <stdlib.h>
@@ -39,12 +29,15 @@ void game_frame(int ch) {
 	draw_element(&textb, my_game->renderer);
 }
 
+#ifndef __EMSCRIPTEN__
 int main (int argc, char* argv[]) {
 	my_game = create_game(60, 15, game_frame, argc, argv);
+#else
+int main () {
+	my_game = create_game(60, 15, game_frame, 0, NULL);
+#endif
 	game_start(my_game);
   game_end(my_game);
   //test_packets();
 	return 0;
 }
-
-#endif

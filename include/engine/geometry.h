@@ -1,5 +1,3 @@
-#ifndef __EMSCRIPTEN__
-
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
 
@@ -21,5 +19,4 @@ typedef struct {
 Rect create_rect(int x, int y, int width, int height);
 Position create_pos(int x, int y);
 
-#endif
 #endif

@@ -1,9 +1,9 @@
-#ifndef __EMSCRIPTEN__
 
 #ifndef NETWORKING_H
 #define NETWORKING_H
 
 #include <engine/renderer.h>
+#ifndef __EMSCRIPTEN__
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <poll.h>
+#endif
 
 #define MAXDATASIZE         100
 #define DEFAULT_PORT        10666
@@ -20,6 +21,21 @@
 #define NET_PROTO_TCP       1
 #define NET_UNUSED_FD      -2
 #define NET_CLIENT_UDP_FD  -3
+
+
+typedef struct {
+  bool is_server;
+  bool is_net_game;
+  int port;
+  char* server_hostname;
+	void (*client_connect)();
+	void (*client_disconnect)();
+	void (*server_disconnect)();
+	void (*packet_recv)(void* buf);
+} NetworkSettings;
+
+
+#ifndef __EMSCRIPTEN__
 
 typedef struct {
   bool is_local;
@@ -44,17 +60,6 @@ typedef struct {
   int size;
 } ListPollfd;
 
-typedef struct {
-  bool is_server;
-  bool is_net_game;
-  int port;
-  char* server_hostname;
-	void (*client_connect)();
-	void (*client_disconnect)();
-	void (*server_disconnect)();
-	void (*packet_recv)(void* buf);
-} NetworkSettings;
-
 void* get_in_addr(struct sockaddr *sa);
 
 const char* port_as_str(const int port);
@@ -69,4 +74,5 @@ int net_send_packet(void* data, int protocol, int buffer_size);
 void init_net(NetworkSettings* net_config);
 
 #endif
+
 #endif

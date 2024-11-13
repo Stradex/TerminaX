@@ -1,5 +1,3 @@
-#ifndef __EMSCRIPTEN__
-
 #include <engine/ui.h>
 #include <string.h>
 
@@ -95,6 +93,7 @@ void add_sprite_to_anim(UISpriteAnim* anim, UISprite* sprite, int delay) {
 }
 
 void free_ui_element(void* f) {
+#ifndef __EMSCRIPTEN__
   UIFigure* element = (UIFigure*)f;
   switch (element->type)  {
     case FIGURE_TEXT:
@@ -113,7 +112,6 @@ void free_ui_element(void* f) {
     break;
   } 
   free(f);
+#endif
   f = NULL;
 }
-
-#endif
