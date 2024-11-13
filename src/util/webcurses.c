@@ -27,6 +27,10 @@ int _timeout = -1;
 * FUNCTIONS
 ***********/
 
+bool _out_of_bounds(int row, int col) {
+  return !(row >= 0 && row <= getmaxy(NULL) && col >= 0 && col <= getmaxx(NULL)); 
+}
+
 void _init_em_params() {
 	EM_ASM(
 		_stack_arg = [];
@@ -124,6 +128,9 @@ int getch() {
 
 
 int mvprintw(int y, int x, const char *fmt, ...) {
+  if (_out_of_bounds(y, x)) {
+    return 1;
+  }
   char buffer[256];
   va_list args;
   va_start(args, fmt);
@@ -141,6 +148,10 @@ int mvprintw(int y, int x, const char *fmt, ...) {
 *************/
 
 int mvaddch(int y, int x, int ch) {
+  if (_out_of_bounds(y, x)) {
+    return 1;
+  }
+
 	int pair = PAIR_NUMBER(ch);
 	if (pair > 0) {
 		short f, b;
