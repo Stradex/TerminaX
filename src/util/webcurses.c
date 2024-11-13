@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <util/webcurses.h>
+#include <util/em_util.h>
 
 
 extern void* stdscr = NULL;
@@ -31,22 +32,6 @@ bool _out_of_bounds(int row, int col) {
   return !(row >= 0 && row <= getmaxy(NULL) && col >= 0 && col <= getmaxx(NULL)); 
 }
 
-void _init_em_params() {
-	EM_ASM(
-		_stack_arg = [];
-	);
-}
-
-void _add_int_em_param(int arg) {
-	EM_ASM({
-		_stack_arg.push($0);
-	}, arg);
-}
-void _add_char_em_param(char arg) {
-	EM_ASM({
-		_stack_arg.push($0);
-	}, arg);
-}
 
 
 _ColorPair* _get_color_pair(short pair) {
@@ -121,8 +106,8 @@ EM_ASYNC_JS(int, _get_ch, (), {
 });
 
 int getch() {
-	_init_em_params();
-	_add_int_em_param(_timeout);
+	init_em_params();
+	add_int_em_param(_timeout);
 	return _get_ch();
 }
 

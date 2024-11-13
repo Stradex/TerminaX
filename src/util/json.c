@@ -1,5 +1,3 @@
-#ifndef __EMSCRIPTEN__
-
 #include <util/json.h>
 
 #include <errno.h>
@@ -1104,5 +1102,3 @@ define_result_type(json_element)
 define_result_type(json_entry)
 define_result_type(json_string)
 define_result_type(size)
-
-#endif

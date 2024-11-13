@@ -2,9 +2,6 @@
 #include <engine/assets_parser.h>
 #include <stdbool.h>
 #include <stdio.h>
-
-#ifndef __EMSCRIPTEN__
-
 #include <util/file_manager.h>
 #include <util/json.h>
 #include <engine/ui.h>
@@ -203,7 +200,7 @@ bool process_json_anim(const char* asset_name, json_object_t* obj) {
 
 bool init_assets(void) {
   result(json_element) element_result = json_parse(get_file_text("./assets.min.json"));
-
+  printf("assets loading\n");
   // Guard if
   if(result_is_err(json_element)(&element_result)) {
     typed(json_error) error = result_unwrap_err(json_element)(&element_result);
@@ -257,11 +254,3 @@ void free_all_assets() {
   global_assets = NULL;
 }
 
-#else
-
-bool init_assets(void) {
-  printf("Initializing assets...\n");
-  return true;
-}
-
-#endif

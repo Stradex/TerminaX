@@ -1,5 +1,3 @@
-#ifndef __EMSCRIPTEN__
-
 #pragma once
 
 #include <stddef.h>
@@ -158,5 +156,3 @@ void json_free(typed(json_element) * element);
  * @return The string representation
  */
 typed(json_string) json_error_to_string(typed(json_error) error);
-
-#endif

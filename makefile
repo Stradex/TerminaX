@@ -1,4 +1,4 @@
-all: compile compile_wasm
+all: compile compile_wasm clean
 
 # Compiler
 CC = gcc
@@ -49,4 +49,4 @@ $(WEB_TARGET): $(SRC)
 
 # Clean
 clean:
-	rm -rf $(OBJDIR) $(BINDIR)
+	rm -rf $(OBJDIR)

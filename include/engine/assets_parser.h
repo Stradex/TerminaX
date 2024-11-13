@@ -4,8 +4,6 @@
 
 #include <stdbool.h>
 
-#ifndef __EMSCRIPTEN__
-
 #include <util/json.h>
 #include <engine/ui.h>
 
@@ -18,8 +16,6 @@ UISprite load_sprite_from_file(const char* file, const char* brightmap_file);
 Asset* get_asset(const char* alias);
 
 void free_all_assets();
-
-#endif
 
 bool init_assets(void);
 

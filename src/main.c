@@ -20,6 +20,7 @@ Game* my_game;
 
 void game_frame(int ch) {
 
+
   UIText text, textb; 
   text = create_uitext(create_rect(34, 6, 25, 1), "PODEMOS APRENDER"); 
   textb = create_uitext(create_rect(34, 7, 25, 1), "PRUEBA");
@@ -27,6 +28,14 @@ void game_frame(int ch) {
 	textb.align = ALIGN_CENTER | ALIGN_MIDDLE;
 	draw_element(&text, my_game->renderer);
 	draw_element(&textb, my_game->renderer);
+
+  Asset* tmp_asset = get_asset("test_anim"); //LOAD FROM JSON FILE
+  if (!tmp_asset) return;
+  UISpriteAnim* anim = (UISpriteAnim*)tmp_asset->ui_figure;
+  anim->pos.x = 15;
+  anim->pos.y = 2;
+
+	draw_element(anim, my_game->renderer);
 }
 
 #ifndef __EMSCRIPTEN__
@@ -36,6 +45,7 @@ int main (int argc, char* argv[]) {
 int main () {
 	my_game = create_game(60, 15, game_frame, 0, NULL);
 #endif
+  game_init(my_game);
 	game_start(my_game);
   game_end(my_game);
   //test_packets();

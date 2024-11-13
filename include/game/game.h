@@ -14,4 +14,5 @@ typedef struct {
 Game* create_game(int width, int height, void (*game_logic)(int), int argc, char* argv[]);
 void game_start(Game* game);
 void game_end(Game* game);
+void game_init(Game* game);
 #endif
