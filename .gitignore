@@ -1,4 +1,5 @@
 *.sw*
 *.vim
-bin/
+bin/game
+bin/game.js
 obj/

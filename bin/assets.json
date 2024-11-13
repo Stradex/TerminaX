@@ -1,0 +1,43 @@
+{
+  "test_sprite": {
+    "type": "sprite",
+    "geometry": "assets/test_sprite.asprite",
+    "color": "assets/test_sprite.acolor"
+  },
+  "test_frame1": {
+    "type": "sprite",
+    "geometry": "assets/test_frame1.asprite",
+    "color": "assets/test_frame1.acolor"
+  },
+  "test_frame2": {
+    "type": "sprite",
+    "geometry": "assets/test_frame2.asprite",
+    "color": "assets/test_frame2.acolor"
+  },
+  "test_frame3": {
+    "type": "sprite",
+    "geometry": "assets/test_frame3.asprite",
+    "color": "assets/test_frame3.acolor"
+  },
+  "test_frame4": {
+    "type": "sprite",
+    "geometry": "assets/test_frame4.asprite",
+    "color": "assets/test_frame4.acolor"
+  },
+  "test_anim": {
+    "type": "sprite_anim",
+    "frames": {
+      "test_frame1": {
+        "frame": 1
+      },
+      "test_frame2": {
+        "frame": 2
+      },
+      "test_frame4": {
+        "frame": 3
+      }
+    },
+    "loop": true
+  }
+
+}
